@@ -25,6 +25,11 @@ def __create_namespace(cfg_dict):
     for k, v in cfg_dict.items():
         if type(v) == dict:
             new_dict[k] = __create_namespace(v)
+        elif v.isnumeric():
+            if '.' in v:
+                new_dict[k] = float(v)
+            else:
+                new_dict[k] = int(v)
         else:
             new_dict[k] = v
     cfg_ns = argparse.Namespace(**new_dict)
