@@ -14,7 +14,7 @@ def main():
         model.cuda()
 
     data = utils.get_dataset(args=args, mode='train')
-    embeddings, labels = utils.get_embedding(model=model, dataloader=data)
+    embeddings, labels = utils.get_embedding(model=model, dataloader=data, cuda=args.env.cuda)
 
 
     import pdb

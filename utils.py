@@ -99,16 +99,16 @@ def flatten_and_concat(output_dict, pool_size=0, target_size=0,
 
 def get_dataset(args, mode='train'):
     if mode == 'train':
-        transform = transforms.Compose([transforms.RandomResizedCrop(size=args.image_size),
+        transform = transforms.Compose([transforms.RandomResizedCrop(size=args.data.img_size),
                                         transforms.RandomHorizontalFlip(p=0.5),
                                         transforms.ColorJitter(),
                                         transforms.ToTensor(),
-                                        transforms.Normalize(mean=args.normalize_param.mean, std=args.normalize_param.std)])
+                                        transforms.Normalize(mean=args.data.normalize_param.mean, std=args.data.normalize_param.std)])
     else:
-        transform = transforms.Compose([transforms.Resize(size=args.image_size * 1.15),
-                                        transforms.CenterCrop(size=args.image_size),
+        transform = transforms.Compose([transforms.Resize(size=int(args.data.img_size * 1.15)),
+                                        transforms.CenterCrop(size=args.data.img_size),
                                         transforms.ToTensor(),
-                                        transforms.Normalize(mean=args.data_mean, std=args.data_std)])
+                                        transforms.Normalize(mean=args.data.normalize_param.mean, std=args.data.normalize_param.std)])
 
     data = DataLoader(dataset=datasets.get_dataset(args, transform=transform, mode=mode),
                         batch_size=args.env.batch_size,
