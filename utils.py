@@ -112,7 +112,7 @@ def get_dataset(args, mode='train'):
 
     data = DataLoader(dataset=datasets.get_dataset(args, transform=transform, mode=mode),
                         batch_size=args.env.batch_size,
-                        shufflle=True,
+                        shuffle=True,
                         num_workers=args.env.num_workers,
                         pin_memory=True)
 
