@@ -13,7 +13,7 @@ def main():
     if args.env.cuda:
         model.cuda()
 
-    data = utils.get_dataset(args=args, model='train')
+    data = utils.get_dataset(args=args, mode='train')
     embeddings, labels = utils.get_embedding(model=model, dataloader=data)
 
 
