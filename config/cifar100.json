@@ -11,7 +11,7 @@
       "dataset": "cifar100",
       "dataset_path": "../../scratch/cifar100",
       "nb_classes": 100,
-      "img_size": "224",
+      "img_size": 224,
       
       "normalize_param": {
         "mean": [0.4914, 0.4822, 0.4465],
