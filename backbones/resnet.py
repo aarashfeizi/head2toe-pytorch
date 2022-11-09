@@ -169,9 +169,9 @@ class Bottleneck(nn.Module):
         out += identity
         out3 = self.relu(out)
 
-        act_dict.update({f'block{self.block_id}_unit{self.unit_id}_layer0': out1,
-                        f'block{self.block_id}_unit{self.unit_id}_layer1': out2,
-                        f'block{self.block_id}_unit{self.unit_id}_layer2': out3})
+        act_dict.update({f'block{self.block_id}_unit{self.unit_id}_layer0': out1.cpu().detach(),
+                        f'block{self.block_id}_unit{self.unit_id}_layer1': out2.cpu().detach(),
+                        f'block{self.block_id}_unit{self.unit_id}_layer2': out3.cpu().detach()})
         
         final_dict = {'final': out3, 'all_acts': act_dict}
 
@@ -289,7 +289,7 @@ class ResNet(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        output_dict['after_root'] = x # after root
+        output_dict['after_root'] = x.cpu().detach() # after root
         x = self.maxpool(x)
 
         layer1_outs = self.layer1(x) # block 1
@@ -307,9 +307,9 @@ class ResNet(nn.Module):
         x = self.avgpool(layer4_outs['final'])
 
         x = torch.flatten(x, 1)
-        output_dict['pre_logits'] = x # pre-logits
+        output_dict['pre_logits'] = x.cpu().detach() # pre-logits
         x_classes = self.fc(x)
-        output_dict['logits'] = x_classes # logits
+        output_dict['logits'] = x_classes.cpu().detach() # logits
 
         
         return output_dict
