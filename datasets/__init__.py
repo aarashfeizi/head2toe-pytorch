@@ -1,9 +1,9 @@
 import torchvision.datasets as datasets
 
-DATASETS = {'cifar10': datasets.CIFAR10(),
+DATASETS = {'cifar10': datasets.CIFAR10,
             'cifar100': datasets.CIFAR100,
-            'caltech101': datasets.Caltech101(),
-            'svhn': datasets.SVHN()}
+            'caltech101': datasets.Caltech101,
+            'svhn': datasets.SVHN}
 
 
 def get_dataset(args, trainsform=None, mode='train'): 
