@@ -27,7 +27,7 @@ class FineTune(nn.Module):
         self.gl_coeff = args.model.loss.gl_coeff
         self.emb_normalization = args.model.emb_normalization
         self.optimizer_name = args.model.optimizer
-        self.optimizer = self._get_optimizer()
+        self.optimizer = self._get_optimizer(args=args)
 
         if backbone == 'resnet50':
             self.backbone = resnet.resnet50(ResNet50_Weights.IMAGENET1K_V2)
