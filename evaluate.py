@@ -15,9 +15,8 @@ def main():
     val_data = utils.get_dataset(args=args, mode='val')
 
 
-    model.train_classifier(model=model,
-                            train_data_loader=train_data,
-                            val_data_loader=val_data)
+    model.optimize_finetune(train_loader=train_data,
+                            val_loader=val_data)
 
 
     import pdb

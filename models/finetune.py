@@ -6,7 +6,7 @@ from torchvision.models import ResNet50_Weights
 from tqdm import tqdm
 import numpy as np
 from collections import OrderedDict
-from torch.nn import BCEWithLogitsLoss
+from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score
 import utils
@@ -26,28 +26,32 @@ class FineTune(nn.Module):
         self.gl_r = args.model.loss.gl_r
         self.gl_coeff = args.model.loss.gl_coeff
         self.emb_normalization = args.model.emb_normalization
-        self.optimizer_name = args.model.optimizer
-        self.optimizer = self._get_optimizer(args=args)
-
+        self.target_size = 8192
+        self.train_batch_size = args.env.train_batch_size
+        self.val_batch_size = args.env.val_batch_size
         if backbone == 'resnet50':
             self.backbone = resnet.resnet50(ResNet50_Weights.IMAGENET1K_V2)
         else:
             raise Exception('Backbone not supported')
 
-        if not args.finetune_backbone:
+        if not args.model.finetune_backbone:
             self.backbone.eval()
         
-        self.loss_fn = BCEWithLogitsLoss()
+        self.loss_fn = CrossEntropyLoss()
 
         self.classification_layer = None
         self.output_size = -1 # will be set in _prepare_fc()
         self.classification_layer = self._prepare_fc()
+
+        self.optimizer_name = args.model.optimizer
+        self.optimizer = self._get_optimizer(args=args)
+
     
     def _get_optimizer(self, args):
         if self.optimizer_name == 'sgd':
-            return torch.optim.SGD(params=self.classification_layer.parameters, momentum=0.9, lr=args.model.lr)
+            return torch.optim.SGD(params=self.classification_layer.parameters(), momentum=0.9, lr=args.model.lr)
         if self.optimizer_name == 'adam':
-            return torch.optim.Adam(params=self.classification_layer.parameters, lr=args.model.lr)
+            return torch.optim.Adam(params=self.classification_layer.parameters(), lr=args.model.lr)
     
     def _prepare_fc(self):
         x = torch.rand((1, 3, self.img_size, self.img_size))
@@ -55,13 +59,17 @@ class FineTune(nn.Module):
             x = x.cuda()
 
         out = self.backbone(x)
+        out = utils.flatten_and_concat(out, target_size=self.target_size)
         self.output_size = 0
-        for k, v in out.items():
-            self.output_size += v.shape[-1]
+        
+        for o in out:
+            self.output_size += o.shape[-1]
+            
 
         print('Output feature size is:', self.output_size)
 
-        return nn.Sequential(OrderedDict([('fc', nn.Linear(self.output_size, self.nb_classes))]))
+        return nn.Sequential(OrderedDict([('fc', nn.Linear(self.output_size, self.nb_classes)),
+                                            ('softmax', nn.Softmax(dim=1))]))
 
     
     def __group_lasso_reg(self):
@@ -213,18 +221,22 @@ class FineTune(nn.Module):
 
         return eval_acc, eval_loss
 
-    def train_classifier(self, train_data_loader, val_data_loader):
+    def _train_classifier(self, train_data_loader, val_data_loader):
+
+        
+
         for epoch in range(1, self.epochs + 1):
             epoch_loss = 0
             train_acc, train_loss = self.train_step(epoch=0, data_loader=train_data_loader)
-            val_acc, val_loss = self.eval_step(epoch=0, data_loader=val_datal_oader)
+            print('train_acc: ', train_acc)
+            val_acc, val_loss = self.eval_step(epoch=0, data_loader=val_data_loader)
             print('val_acc: ', val_acc)
 
 
             
             
 
-    def _optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None):
+    def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None):
         train_embeddings, train_labels = self._get_embedding(train_loader)
         train_embeddings = self._process_embeddings(embeddings=train_embeddings,
                                                     selected_features=selected_feature_indices,
@@ -232,11 +244,13 @@ class FineTune(nn.Module):
         train_emb_dataset = list(zip(train_embeddings, train_labels))
         train_embedding_dl = DataLoader(train_emb_dataset, shuffle=True, batch_size=self.train_batch_size)
         if val_loader is not None:
-            val_embedding_dl = DataLoader(train_embeddings, shuffle=True, batch_size=self.train_batch_size)
+            val_embeddings, val_labels = self._get_embedding(val_loader)
+            val_embeddings = self._process_embeddings(embeddings=val_embeddings,
+                                                        selected_features=selected_feature_indices,
+                                                        normalization=self.emb_normalization)   
+            val_emb_dataset = list(zip(val_embeddings, val_labels))
+            val_embedding_dl = DataLoader(val_emb_dataset, shuffle=True, batch_size=self.val_batch_size)
+        else:
+            val_embedding_dl = None
 
-        self.train_classifier(train_embedding_dl)
-
-
-        
-        
-
+        self._train_classifier(train_embedding_dl, val_embedding_dl)
