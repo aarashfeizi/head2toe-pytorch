@@ -5,8 +5,10 @@ import datasets
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from tqdm import tqdm
+import numpy as np
 import argparse
 import json
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -119,25 +121,3 @@ def get_dataset(args, mode='train'):
     return data
 
 
-def get_embedding(model, dataloader, cuda=True):
-    model.eval()
-    batch_embedding_lists = []
-    labels = []
-    with tqdm(total=len(dataloader), desc="Getting head2toe embeddings...") as t:
-        for idx, batch in enumerate(dataloader):
-            x, l = batch
-            if cuda:
-                x = x.cuda()
-            out = model(x)
-            batch_embedding_lists.append(list(out.values())) # should I detach?
-            labels.append(l)
-
-            t.update()
-
-    labels = torch.concat(labels)
-    output_embeddings = []
-    for i in range(len(batch_embedding_lists[0])):
-      embedding_i = [batch[i] for batch in batch_embedding_lists]
-      output_embeddings.append(torch.concat(embedding_i, dim=0))
-
-    return output_embeddings, labels

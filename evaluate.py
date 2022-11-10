@@ -1,20 +1,23 @@
-from backbones import resnet
 import torch
 import utils
-from torchvision.models import ResNet50_Weights
 import datasets
+from models import finetune
 
 
 def main():
     args = utils.get_args()
-    model = resnet.resnet50(ResNet50_Weights.IMAGENET1K_V2)
-    model.eval()
-
+    model = finetune.FineTune(args=args, backbone='resnet50')
+    
     if args.env.cuda:
         model.cuda()
 
-    data = utils.get_dataset(args=args, mode='train')
-    embeddings, labels = utils.get_embedding(model=model, dataloader=data, cuda=args.env.cuda)
+    train_data = utils.get_dataset(args=args, mode='train')
+    val_data = utils.get_dataset(args=args, mode='val')
+
+
+    model.train_classifier(model=model,
+                            train_data_loader=train_data,
+                            val_data_loader=val_data)
 
 
     import pdb

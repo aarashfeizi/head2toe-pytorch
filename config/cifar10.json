@@ -4,6 +4,7 @@
       "gpu_ids": 0,
       "log_path": "/home/mila/f/feiziaar/scratch/head2toe/logs",
       "num_workers": 10,
+      "epochs": 10,
       "batch_size": 256
     },
 
@@ -26,7 +27,14 @@
       }
     },
     "model": {
-      
+      "loss": {
+        "gl_p": 1,
+        "gl_r": 2,
+        "gl_coeff": 1
+      },
+      "emb_normalization": "unit_vector",
+      "optimizer": "adam",
+      "lr": 1e-3
     }
   
 }

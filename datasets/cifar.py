@@ -9,9 +9,14 @@ class CIFAR100(tCIFAR100):
         super(CIFAR100, self).__init__(root=root, 
                                     train=train, 
                                     transform=transform)
+        
+        if train:
+            self.limit = 1000
+        else:
+            self.limit = 200
 
-        self.data = self.data[:1000]
-        self.targets = self.targets[:1000] 
+        self.data = self.data[:self.limit]
+        self.targets = self.targets[:self.limit] 
 
 
 class CIFAR10(tCIFAR10):
@@ -23,5 +28,10 @@ class CIFAR10(tCIFAR10):
                                     train=train, 
                                     transform=transform)
 
-        self.data = self.data[:1000]
-        self.targets = self.targets[:1000] 
+        if train:
+            self.limit = 1000
+        else:
+            self.limit = 200
+
+        self.data = self.data[:self.limit]
+        self.targets = self.targets[:self.limit] 
