@@ -129,7 +129,7 @@ def get_embedding(model, dataloader, cuda=True):
             if cuda:
                 x = x.cuda()
             out = model(x)
-            batch_embedding_lists.append(out) # should I detach?
+            batch_embedding_lists.append(list(out.values)) # should I detach?
             labels.append(l)
 
             t.update()
