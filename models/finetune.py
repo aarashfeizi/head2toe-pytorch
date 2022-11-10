@@ -15,7 +15,7 @@ import utils
 
 class FineTune(nn.Module):
     def __init__(self, args, backbone):
-        super(self, FineTune).__init__()
+        super(FineTune, self).__init__()
         self.cuda = args.env.cuda
 
         self.img_size = args.data.img_size
