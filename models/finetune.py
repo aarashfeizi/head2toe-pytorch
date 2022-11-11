@@ -17,7 +17,7 @@ import os, pickle
 class FineTune(nn.Module):
     def __init__(self, args, backbone):
         super(FineTune, self).__init__()
-        self.cuda = args.env.cuda
+        self.use_cuda = args.env.cuda
 
         self.img_size = args.data.img_size
         self.nb_classes = args.data.nb_classes
@@ -89,7 +89,7 @@ class FineTune(nn.Module):
         with tqdm(total=len(dataloader), desc="Getting head2toe embeddings...") as t:
             for idx, batch in enumerate(dataloader):
                 x, l = batch
-                if self.cuda:
+                if self.use_cuda:
                     x = x.cuda()
                 out = self.backbone(x)
                 batch_embedding_lists.append(utils.flatten_and_concat(output_dict=out, 
@@ -169,7 +169,7 @@ class FineTune(nn.Module):
         with tqdm(total=len(data_loader), desc=f"Training classifier {epoch} / {self.epochs}") as t:
             for batch_id, batch in enumerate(data_loader, 1):
                 x, l = batch
-                if self.cuda:
+                if self.use_cuda:
                     x = x.cuda()
                 logits = self.classification_layer(x)
                 loss = self.loss_fn(input=logits, target=l) + self.gl_coeff * self.__group_lasso_reg() 
@@ -203,7 +203,7 @@ class FineTune(nn.Module):
         with tqdm(total=len(data_loader), desc=f"Validating epoch {epoch}: ") as t:
             for batch_id, batch in enumerate(data_loader, 1):
                 x, l = batch
-                if self.cuda:
+                if self.use_cuda:
                     x = x.cuda()
                 logits = self.classification_layer(x)
                 loss = self.loss_fn(input=logits, target=l) + self.gl_coeff * self.__group_lasso_reg() 
