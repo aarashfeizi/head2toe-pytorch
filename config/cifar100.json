@@ -40,6 +40,7 @@
         "gl_r": 2
       },
       "optimizer": "adam"
+      
     }
 }
   
