@@ -78,8 +78,9 @@ class FineTune(nn.Module):
 
         print('Output feature size is:', self.output_size)
 
-        return nn.Sequential(OrderedDict([('fc', nn.Linear(self.output_size, self.nb_classes)),
-                                            ('softmax', nn.Softmax(dim=1))]))
+        return nn.Sequential(OrderedDict([('fc', nn.Linear(self.output_size, self.nb_classes))]))
+        # ,
+                                            # ('softmax', nn.Softmax(dim=1))
 
     
     def __group_lasso_reg(self):
