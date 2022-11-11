@@ -24,8 +24,8 @@ def wandb_log():
     wandb_dict = {}
 
 
-def wandb_update_value(names_values):
-    for (name, value) in names_values:
+def wandb_update_value(names_values_dict):
+    for (name, value) in names_values_dict.items():
         wandb_dict[name] = value
 
 def get_args():
