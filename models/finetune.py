@@ -173,6 +173,7 @@ class FineTune(nn.Module):
                 l = torch.tensor(l)
                 if self.use_cuda:
                     x = x.cuda()
+                    l = l.cuda()
                 logits = self.classification_layer(x)
                 loss = self.loss_fn(input=logits, target=l) + self.gl_coeff * self.__group_lasso_reg() 
 
@@ -180,7 +181,7 @@ class FineTune(nn.Module):
 
                 preds = logits.argmax(dim=1)
                 all_preds.extend(preds.detach().cpu().numpy())
-                all_trues.extend(l)
+                all_trues.extend(l.cpu().numpy())
                 
                 self.optimizer.zero_grad()
                 loss.backward()
@@ -190,7 +191,8 @@ class FineTune(nn.Module):
 
                 t.set_postfix(**postfixes)
                 t.update()
-                
+        
+
         train_acc = accuracy_score(y_pred=all_preds, y_true=all_trues)
         train_loss = epoch_loss / len(data_loader)
 
@@ -217,7 +219,7 @@ class FineTune(nn.Module):
 
                 preds = logits.argmax(dim=1)
                 all_preds.extend(preds.detach().cpu().numpy())
-                all_trues.extend(l)
+                all_trues.extend(l.cpu().numpy())
 
                 
                 
