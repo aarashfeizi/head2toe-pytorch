@@ -275,12 +275,12 @@ class FineTune(nn.Module):
 
         self._train_classifier(train_embedding_dl, val_embedding_dl)
 
-    def _load_dataset(data_path):
+    def _load_dataset(self, data_path):
         with open(data_path, 'rb') as f:
             data = pickle.load(f)
         return data
 
-    def _save_dataset(data, data_path):
+    def _save_dataset(self, data, data_path):
         with open(data_path, 'wb') as f:
             pickle.dump(data, f)
         
