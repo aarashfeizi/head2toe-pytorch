@@ -169,6 +169,8 @@ class FineTune(nn.Module):
         with tqdm(total=len(data_loader), desc=f"Training classifier {epoch} / {self.epochs}") as t:
             for batch_id, batch in enumerate(data_loader, 1):
                 x, l = batch
+                x = torch.tensor(x)
+                l = torch.tensor(l)
                 if self.use_cuda:
                     x = x.cuda()
                 logits = self.classification_layer(x)
@@ -203,6 +205,8 @@ class FineTune(nn.Module):
         with tqdm(total=len(data_loader), desc=f"Validating epoch {epoch}: ") as t:
             for batch_id, batch in enumerate(data_loader, 1):
                 x, l = batch
+                x = torch.tensor(x)
+                l = torch.tensor(l)
                 if self.use_cuda:
                     x = x.cuda()
                 logits = self.classification_layer(x)
@@ -250,7 +254,7 @@ class FineTune(nn.Module):
             train_embeddings = self._process_embeddings(embeddings=train_embeddings,
                                                         selected_features=selected_feature_indices,
                                                         normalization=self.emb_normalization) 
-            train_emb_dataset = list(zip(train_embeddings, train_labels))
+            train_emb_dataset = list(zip(train_embeddings.numpy(), train_labels.numpy()))
 
             if self.use_cache:
                 self._save_dataset(train_emb_dataset, train_emb_path)
@@ -265,7 +269,7 @@ class FineTune(nn.Module):
                 val_embeddings = self._process_embeddings(embeddings=val_embeddings,
                                                             selected_features=selected_feature_indices,
                                                             normalization=self.emb_normalization)   
-                val_emb_dataset = list(zip(val_embeddings, val_labels))
+                val_emb_dataset = list(zip(val_embeddings.numpy(), val_labels.numpy()))
 
                 if self.use_cache:
                     self._save_dataset(val_emb_dataset, val_emb_path)
@@ -279,6 +283,7 @@ class FineTune(nn.Module):
     def _load_dataset(self, data_path):
         with open(data_path, 'rb') as f:
             data = pickle.load(f)
+
         return data
 
     def _save_dataset(self, data, data_path):
