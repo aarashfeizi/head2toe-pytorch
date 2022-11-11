@@ -61,8 +61,10 @@ class FineTune(nn.Module):
     def _get_optimizer(self, args):
         if self.optimizer_name == 'sgd':
             return torch.optim.SGD(params=self.classification_layer.parameters(), momentum=0.9, lr=args.lr)
-        if self.optimizer_name == 'adam':
+        elif self.optimizer_name == 'adam':
             return torch.optim.Adam(params=self.classification_layer.parameters(), lr=args.lr)
+        else:
+            raise Exception('Optimizer not set, or not supported')
     
     def _prepare_fc(self):
         x = torch.rand((1, 3, self.img_size, self.img_size))
@@ -174,8 +176,6 @@ class FineTune(nn.Module):
         with tqdm(total=len(data_loader), desc=f"Training classifier {epoch} / {self.epochs}") as t:
             for batch_id, batch in enumerate(data_loader, 1):
                 x, l = batch
-                x = torch.tensor(x)
-                l = torch.tensor(l)
                 if self.use_cuda:
                     x = x.cuda()
                     l = l.cuda()
