@@ -240,6 +240,7 @@ class FineTune(nn.Module):
 
     def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None):
         emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_{self.target_size}')
+        utils.make_dirs(emb_path)
         train_emb_path = os.path.join(emb_path, 'train.pkl')
         val_emb_path = os.path.join(emb_path, 'val.pkl')
         if self.use_cache and os.path.exists(train_emb_path):
