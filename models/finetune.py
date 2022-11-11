@@ -32,8 +32,8 @@ class FineTune(nn.Module):
         self.epochs = args.env.epochs
         self.gl_p = args.model.loss.gl_p
         self.gl_r = args.model.loss.gl_r
-        self.gl_coeff = args.model.loss.gl_coeff
-        self.emb_normalization = args.model.emb_normalization
+        self.gl_coeff = args.gl_coeff
+        self.emb_normalization = args.emb_normalization
         self.target_size = 8192
         self.train_batch_size = args.env.train_batch_size
         self.val_batch_size = args.env.val_batch_size
@@ -57,9 +57,9 @@ class FineTune(nn.Module):
     
     def _get_optimizer(self, args):
         if self.optimizer_name == 'sgd':
-            return torch.optim.SGD(params=self.classification_layer.parameters(), momentum=0.9, lr=args.model.lr)
+            return torch.optim.SGD(params=self.classification_layer.parameters(), momentum=0.9, lr=args.lr)
         if self.optimizer_name == 'adam':
-            return torch.optim.Adam(params=self.classification_layer.parameters(), lr=args.model.lr)
+            return torch.optim.Adam(params=self.classification_layer.parameters(), lr=args.lr)
     
     def _prepare_fc(self):
         x = torch.rand((1, 3, self.img_size, self.img_size))

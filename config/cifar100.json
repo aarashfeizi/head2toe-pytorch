@@ -1,4 +1,7 @@
 {   
+    "gl_coeff": 1,
+    "lr": 1e-3,
+    "emb_normalization": "unit_vector",
     "env": {
       "cuda": true,
       "gpu_ids": 0,
@@ -34,14 +37,10 @@
       "finetune_backbone": false,
       "loss": {
         "gl_p": 1,
-        "gl_r": 2,
-        "gl_coeff": 1
+        "gl_r": 2
       },
-      "emb_normalization": "unit_vector",
-      "optimizer": "adam",
-      "lr": 1e-3
+      "optimizer": "adam"
     }
-  
 }
   
   

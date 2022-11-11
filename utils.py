@@ -15,7 +15,8 @@ wandb_dict = {}
 
 def init_wandb(args):
     wandb.init(config=args, dir=os.path.join(args.env.log_path, 'wandb/'))
-    return 
+    args = wandb.config
+    return args
 
 def wandb_log():
     global wandb_dict
@@ -31,13 +32,24 @@ def wandb_update_value(names_values_dict):
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_file', default='config/cifar100.json', type=str, help='Path to config file')
+    parser.add_argument('--batch_size', default=None, type=int, help='Batch size')
+    parser.add_argument('--lr', default=None, type=float, help='Learning rate')
+    parser.add_argument('--gl_coeff', default=None, type=float, help='Group Lasso coefficient')
+
 
     args = parser.parse_args()
 
     with open(args.config_file, 'r') as f:
         cfg_dict = json.load(f)
 
+    if args.lr:
+      cfg_dict['lr'] = args.lr
+    
+    if args.gl_coeff:
+      cfg_dict['gl_coeff'] = args.gl_coeff  
+
     args = __create_namespace(cfg_dict)
+
     return args
 
 def __create_namespace(cfg_dict):
