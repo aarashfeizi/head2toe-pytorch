@@ -17,32 +17,32 @@ import os, pickle
 class FineTune(nn.Module):
     def __init__(self, args, backbone):
         super(FineTune, self).__init__()
-        self.use_cuda = args.env.cuda
+        self.use_cuda = args.cuda
 
-        self.img_size = args.data.img_size
-        self.nb_classes = args.data.nb_classes
+        self.img_size = args.img_size
+        self.nb_classes = args.nb_classes
 
         self.backbone_name = backbone
-        self.dataset_name = args.data.dataset
+        self.dataset_name = args.dataset
 
-        self.log_path = args.env.log_path
+        self.log_path = args.log_path
         utils.make_dirs(self.log_path)
 
-        self.use_cache = args.data.use_cache
-        self.epochs = args.env.epochs
-        self.gl_p = args.model.loss.gl_p
-        self.gl_r = args.model.loss.gl_r
-        self.gl_coeff = args.gl_coeff
+        self.use_cache = args.data_use_cache
+        self.epochs = args.epochs
+        self.gl_p = args.loss_gl_p
+        self.gl_r = args.loss_gl_r
+        self.gl_coeff = args.loss_gl_coeff
         self.emb_normalization = args.emb_normalization
         self.target_size = 8192
-        self.train_batch_size = args.env.train_batch_size
-        self.val_batch_size = args.env.val_batch_size
+        self.train_batch_size = args.train_batch_size
+        self.val_batch_size = args.val_batch_size
         if backbone == 'resnet50':
             self.backbone = resnet.resnet50(ResNet50_Weights.IMAGENET1K_V2)
         else:
             raise Exception('Backbone not supported')
 
-        if not args.model.finetune_backbone:
+        if not args.finetune_backbone:
             self.backbone.eval()
         
         self.loss_fn = CrossEntropyLoss()
@@ -51,7 +51,7 @@ class FineTune(nn.Module):
         self.output_size = -1 # will be set in _prepare_fc()
         self.classification_layer = self._prepare_fc()
 
-        self.optimizer_name = args.model.optimizer
+        self.optimizer_name = args.optimizer
         self.optimizer = self._get_optimizer(args=args)
 
     

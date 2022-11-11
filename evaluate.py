@@ -9,12 +9,12 @@ import os
 def main():
     args = utils.get_args()
 
-    if args.env.wandb:
+    if args.wandb:
         args = utils.init_wandb(args)
 
     model = finetune.FineTune(args=args, backbone='resnet50')
     
-    if args.env.cuda:
+    if args.cuda:
         model.cuda()
 
     train_data = utils.get_dataset(args=args, mode='train')

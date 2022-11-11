@@ -1,45 +1,39 @@
 {   
-    "env": {
-      "cuda": true,
-      "gpu_ids": 0,
-      "log_path": "../../scratch/head2toe-pytorch/logs/",
-      "num_workers": 10,
-      "epochs": 10,
-      "batch_size": 256,
-      "train_batch_size": 128,
-      "val_batch_size": 256
+    "loss_gl_coeff": 1,
+    "lr": 1e-3,
+    "emb_normalization": "unit_vector",
+    
+    "cuda": true,
+    "gpu_ids": 0,
+    "log_path": "../../scratch/head2toe-pytorch/logs/",
+    "num_workers": 10,
+    "epochs": 10,
+    "batch_size": 256,
+    "train_batch_size": 128,
+    "val_batch_size": 256,
+    "wandb": true,
+
+    "data_use_cache": true,
+    "dataset": "cifar10",
+    "dataset_path": "../../scratch/cifar10",
+    "nb_classes": 100,
+    "img_size": 224,
+    
+    "normalize_param": {
+      "mean": [0.4914, 0.4822, 0.4465],
+      "std": [0.247, 0.243, 0.261]
     },
 
-    "data": {
-      "use_cache": true,
-      "dataset": "cifar10",
-      "dataset_path": "../../scratch/cifar10",
-      "nb_classes": 10,
-      "img_size": "224",
-      
-      "normalize_param": {
-        "mean": [0.4914, 0.4822, 0.4465],
-        "std": [0.247, 0.243, 0.261]
-      },
-
-      "color_jitter_param": {
-        "brightness": 0.5,
-        "hue": 0.5,
-        "contrast": 0.5,
-        "saturation": 0.5
-      }
+    "color_jitter_param": {
+      "brightness": 0.5,
+      "hue": 0.5,
+      "contrast": 0.5,
+      "saturation": 0.5
     },
-    "model": {
-      "loss": {
-        "gl_p": 1,
-        "gl_r": 2,
-        "gl_coeff": 1
-      },
-      "emb_normalization": "unit_vector",
-      "optimizer": "adam",
-      "lr": 1e-3
-    }
-  
+
+    "finetune_backbone": false,
+    "loss_gl_p": 1,
+    "loss_gl_r": 2,
+    "optimizer": "adam"
+    
 }
-  
-  

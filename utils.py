@@ -14,7 +14,7 @@ import wandb
 wandb_dict = {}
 
 def init_wandb(args):
-    wandb.init(config=args, dir=os.path.join(args.env.log_path, 'wandb/'))
+    wandb.init(config=args, dir=os.path.join(args.log_path, 'wandb/'))
     args = wandb.config
     return args
 
@@ -34,7 +34,7 @@ def get_args():
     parser.add_argument('--config_file', default='config/cifar100.json', type=str, help='Path to config file')
     parser.add_argument('--batch_size', default=None, type=int, help='Batch size')
     parser.add_argument('--lr', default=None, type=float, help='Learning rate')
-    parser.add_argument('--gl_coeff', default=None, type=float, help='Group Lasso coefficient')
+    parser.add_argument('--loss_gl_coeff', default=None, type=float, help='Group Lasso coefficient')
 
 
     args = parser.parse_args()
@@ -45,12 +45,13 @@ def get_args():
     if args.lr:
       cfg_dict['lr'] = args.lr
     
-    if args.gl_coeff:
-      cfg_dict['gl_coeff'] = args.gl_coeff  
+    if args.loss_gl_coeff:
+      cfg_dict['loss_gl_coeff'] = args.loss_gl_coeff  
 
-    args = __create_namespace(cfg_dict)
+    args = argparse.Namespace(**cfg_dict)
 
     return args
+
 
 def __create_namespace(cfg_dict):
     new_dict = {}
@@ -131,21 +132,21 @@ def flatten_and_concat(output_dict, pool_size=0, target_size=0,
 
 def get_dataset(args, mode='train'):
     if mode == 'train':
-        transform = transforms.Compose([transforms.RandomResizedCrop(size=args.data.img_size),
+        transform = transforms.Compose([transforms.RandomResizedCrop(size=args.img_size),
                                         transforms.RandomHorizontalFlip(p=0.5),
                                         transforms.ColorJitter(),
                                         transforms.ToTensor(),
-                                        transforms.Normalize(mean=args.data.normalize_param.mean, std=args.data.normalize_param.std)])
+                                        transforms.Normalize(mean=args.normalize_param['mean'], std=args.normalize_param['std'])])
     else:
-        transform = transforms.Compose([transforms.Resize(size=int(args.data.img_size * 1.15)),
-                                        transforms.CenterCrop(size=args.data.img_size),
+        transform = transforms.Compose([transforms.Resize(size=int(args.img_size * 1.15)),
+                                        transforms.CenterCrop(size=args.img_size),
                                         transforms.ToTensor(),
-                                        transforms.Normalize(mean=args.data.normalize_param.mean, std=args.data.normalize_param.std)])
+                                        transforms.Normalize(mean=args.normalize_param['mean'], std=args.normalize_param['std'])])
 
     data = DataLoader(dataset=datasets.get_dataset(args, transform=transform, mode=mode),
-                        batch_size=args.env.batch_size,
+                        batch_size=args.batch_size,
                         shuffle=True,
-                        num_workers=args.env.num_workers,
+                        num_workers=args.num_workers,
                         pin_memory=True)
 
     return data

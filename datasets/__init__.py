@@ -12,8 +12,8 @@ def get_dataset(args, transform=None, mode='train'):
         args: 
         mode: train or test
     """
-    dataset_name = args.data.dataset
-    dataset_root = args.data.dataset_path
+    dataset_name = args.dataset
+    dataset_root = args.dataset_path
     if "cifar" in dataset_name:
         d = DATASETS[dataset_name](root=dataset_root, train=(mode == 'train'), transform=transform)
     elif dataset_name == 'caltech101':
