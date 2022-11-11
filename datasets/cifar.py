@@ -12,11 +12,8 @@ class CIFAR100(tCIFAR100):
         
         if train:
             self.limit = 1000
-        else:
-            self.limit = 500
-
-        self.data = self.data[:self.limit]
-        self.targets = self.targets[:self.limit] 
+            self.data = self.data[:self.limit]
+            self.targets = self.targets[:self.limit] 
 
 
 class CIFAR10(tCIFAR10):
@@ -30,8 +27,7 @@ class CIFAR10(tCIFAR10):
 
         if train:
             self.limit = 1000
-        else:
-            self.limit = 500
+            self.data = self.data[:self.limit]
+            self.targets = self.targets[:self.limit] 
 
-        self.data = self.data[:self.limit]
-        self.targets = self.targets[:self.limit] 
+        

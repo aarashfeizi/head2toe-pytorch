@@ -12,6 +12,8 @@ from sklearn.metrics import accuracy_score
 import utils
 import os, pickle
 
+from sklearn.model_selection import train_test_split
+
 
 
 class FineTune(nn.Module):
@@ -37,6 +39,7 @@ class FineTune(nn.Module):
         self.gl_r = args.loss_gl_r
         self.gl_coeff = args.loss_gl_coeff
         self.emb_normalization = args.emb_normalization
+        self.train_to_val_ratio_split = args.train_to_val_ratio_split
         self.target_size = 8192
         self.train_batch_size = args.train_batch_size
         self.val_batch_size = args.val_batch_size
@@ -79,8 +82,6 @@ class FineTune(nn.Module):
         print('Output feature size is:', self.output_size)
 
         return nn.Sequential(OrderedDict([('fc', nn.Linear(self.output_size, self.nb_classes))]))
-        # ,
-                                            # ('softmax', nn.Softmax(dim=1))
 
     
     def __group_lasso_reg(self):
@@ -282,11 +283,6 @@ class FineTune(nn.Module):
                 print(f'Early stopping, val_acc did not improve over {best_val_acc} for {self.es_tolerence} epochs!')
                 break
 
-
-
-            
-            
-
     def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None):
         emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.output_size}')
         utils.make_dirs(emb_path)
@@ -306,7 +302,7 @@ class FineTune(nn.Module):
         
         train_embedding_dl = DataLoader(train_emb_dataset, shuffle=True, batch_size=self.train_batch_size)
 
-        if val_loader is not None:
+        if val_loader is not None and self.train_to_val_ratio_split == 0:
             if self.use_cache and os.path.exists(val_emb_path):
                 val_emb_dataset = self._load_dataset(val_emb_path)
             else:
@@ -321,7 +317,18 @@ class FineTune(nn.Module):
                     
             val_embedding_dl = DataLoader(val_emb_dataset, shuffle=True, batch_size=self.val_batch_size)
         else:
-            val_embedding_dl = None
+            assert self.train_to_val_ratio_split != 0
+            tr_x = np.array(list(list(zip(*train_emb_dataset))[0]))
+            tr_y = np.array(list(list(zip(*train_emb_dataset))[1]))
+            train_embeddings, val_embeddings, train_labels, val_labels = train_test_split(tr_x, tr_y, train_size=self.train_to_val_ratio_split, stratify=tr_y)
+            train_emb_dataset = list(zip(train_embeddings, train_labels))
+            val_emb_dataset = list(zip(val_embeddings, val_labels))
+            print(f'Splitting train into train-val like {self.train_to_val_ratio_split}-{1 - self.train_to_val_ratio_split}')
+            print('Train set new size:', len(train_emb_dataset))
+            print('Validation set new size:', len(val_emb_dataset))
+            train_embedding_dl = DataLoader(train_emb_dataset, shuffle=True, batch_size=self.train_batch_size)
+            val_embedding_dl = DataLoader(val_emb_dataset, shuffle=True, batch_size=self.val_batch_size)
+            
 
         self._train_classifier(train_embedding_dl, val_embedding_dl)
 
@@ -334,4 +341,3 @@ class FineTune(nn.Module):
     def _save_dataset(self, data, data_path):
         with open(data_path, 'wb') as f:
             pickle.dump(data, f)
-        

@@ -20,7 +20,10 @@ def main():
         model.cuda()
 
     train_data = utils.get_dataset(args=args, mode='train')
-    val_data = utils.get_dataset(args=args, mode='val')
+    if args.train_to_val_ratio_split == 0:
+        val_data = utils.get_dataset(args=args, mode='val')
+    else:
+        val_data = None
 
 
     model.optimize_finetune(train_loader=train_data,
