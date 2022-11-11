@@ -25,8 +25,8 @@ def main():
                             val_loader=val_data)
 
 
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
 
 if __name__ == '__main__':
     main()
