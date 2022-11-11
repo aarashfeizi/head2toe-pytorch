@@ -209,6 +209,7 @@ class FineTune(nn.Module):
                 l = torch.tensor(l)
                 if self.use_cuda:
                     x = x.cuda()
+                    l = l.cuda()
                 logits = self.classification_layer(x)
                 loss = self.loss_fn(input=logits, target=l) + self.gl_coeff * self.__group_lasso_reg() 
 
