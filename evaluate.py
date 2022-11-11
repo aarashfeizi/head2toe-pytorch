@@ -13,6 +13,7 @@ def main():
         args = utils.init_wandb(args)
     
     print(args)
+    utils.seed_all(args.seed, args.cuda)
 
     model = finetune.FineTune(args=args, backbone='resnet50')
     

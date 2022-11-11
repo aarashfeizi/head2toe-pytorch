@@ -4,6 +4,7 @@
     "emb_normalization": "unit_vector",
     
     "cuda": true,
+    "seed": 402, 
     "gpu_ids": 0,
     "log_path": "../../scratch/head2toe-pytorch/logs/",
     "num_workers": 10,

@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import wandb
+import random
 
 wandb_dict = {}
 
@@ -28,6 +29,32 @@ def wandb_log():
 def wandb_update_value(names_values_dict):
     for (name, value) in names_values_dict.items():
         wandb_dict[name] = value
+
+# SHARING_STRATEGY = "file_system"
+# torch.multiprocessing.set_sharing_strategy(SHARING_STRATEGY)
+# def seed_worker(worker_id):
+#     torch.multiprocessing.set_sharing_strategy(SHARING_STRATEGY)
+#     worker_seed = torch.initial_seed() % 2 ** 32
+#     np.random.seed(worker_seed)
+#     random.seed(worker_seed)
+
+
+def seed_all(seed, cuda=False):
+    if not seed:
+        seed = 10
+
+    print("[ Using Seed : ", seed, " ]")
+
+    torch.manual_seed(seed)
+    if cuda:
+        torch.cuda.manual_seed_all(seed)
+        torch.cuda.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+    return True
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -145,7 +172,7 @@ def get_dataset(args, mode='train'):
 
     data = DataLoader(dataset=datasets.get_dataset(args, transform=transform, mode=mode),
                         batch_size=args.batch_size,
-                        shuffle=True,
+                        shuffle=False,
                         num_workers=args.num_workers,
                         pin_memory=True)
 
