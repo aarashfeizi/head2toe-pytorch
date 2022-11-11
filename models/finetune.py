@@ -164,6 +164,8 @@ class FineTune(nn.Module):
         #     # self.backbone.train()
         self.classification_layer.train()
         epoch_loss = 0
+        epoch_ce_loss = 0
+        epoch_gl_reg = 0
         all_trues = []
         all_preds = []
         with tqdm(total=len(data_loader), desc=f"Training classifier {epoch} / {self.epochs}") as t:
@@ -177,7 +179,13 @@ class FineTune(nn.Module):
                 logits = self.classification_layer(x)
                 loss = self.loss_fn(input=logits, target=l) + self.gl_coeff * self.__group_lasso_reg() 
 
+                ce_loss = self.loss_fn(input=logits, target=l)
+                group_lasso_reg = self.__group_lasso_reg()
+
+                loss = ce_loss + self.gl_coeff * group_lasso_reg
                 epoch_loss += loss.item()
+                epoch_ce_loss += ce_loss.item()
+                epoch_gl_reg += group_lasso_reg.item()
 
                 preds = logits.argmax(dim=1)
                 all_preds.extend(preds.detach().cpu().numpy())
@@ -187,7 +195,9 @@ class FineTune(nn.Module):
                 loss.backward()
                 self.optimizer.step()
 
-                postfixes = {f'train_loss': f'{epoch_loss / (batch_id) :.4f}'}
+                postfixes = {f'train_loss': f'{epoch_loss / (batch_id) :.4f}',
+                            f'train_ce_loss': f'{epoch_ce_loss / (batch_id) :.4f}',
+                            f'train_gl_reg': f'{epoch_gl_reg / (batch_id) :.4f}'}
 
                 t.set_postfix(**postfixes)
                 t.update()
@@ -202,6 +212,8 @@ class FineTune(nn.Module):
         # self.backbone.eval()
         self.classification_layer.eval()
         epoch_loss = 0
+        epoch_ce_loss = 0
+        epoch_gl_reg = 0
         all_preds = []
         all_trues = []
         with tqdm(total=len(data_loader), desc=f"Validating epoch {epoch}: ") as t:
@@ -213,9 +225,13 @@ class FineTune(nn.Module):
                     x = x.cuda()
                     l = l.cuda()
                 logits = self.classification_layer(x)
-                loss = self.loss_fn(input=logits, target=l) + self.gl_coeff * self.__group_lasso_reg() 
+                ce_loss = self.loss_fn(input=logits, target=l)
+                group_lasso_reg = self.__group_lasso_reg()
 
+                loss = ce_loss + self.gl_coeff * group_lasso_reg
                 epoch_loss += loss.item()
+                epoch_ce_loss += ce_loss.item()
+                epoch_gl_reg += group_lasso_reg.item()
 
                 preds = logits.argmax(dim=1)
                 all_preds.extend(preds.detach().cpu().numpy())
@@ -223,7 +239,9 @@ class FineTune(nn.Module):
 
                 
                 
-                postfixes = {f'val_loss': f'{epoch_loss / (batch_id) :.4f}'}
+                postfixes = {f'val_loss': f'{epoch_loss / (batch_id) :.4f}',
+                             f'val_ce_loss': f'{epoch_ce_loss / (batch_id) :.4f}',
+                              f'val_gl_reg': f'{epoch_gl_reg / (batch_id) :.4f}'}
 
                 t.set_postfix(**postfixes)
                 t.update()
