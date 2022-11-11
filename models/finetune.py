@@ -63,9 +63,6 @@ class FineTune(nn.Module):
     
     def _prepare_fc(self):
         x = torch.rand((1, 3, self.img_size, self.img_size))
-        if self.cuda:
-            x = x.cuda()
-
         out = self.backbone(x)
         out = utils.flatten_and_concat(out, target_size=self.target_size)
         self.output_size = 0
