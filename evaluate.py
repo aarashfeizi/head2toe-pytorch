@@ -2,10 +2,14 @@ import torch
 import utils
 import datasets
 from models import finetune
+import wandb
+import os
 
 
 def main():
     args = utils.get_args()
+    if args.wandb:
+        utils.init_wandb(args)
     model = finetune.FineTune(args=args, backbone='resnet50')
     
     if args.env.cuda:

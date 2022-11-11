@@ -9,6 +9,24 @@ import numpy as np
 import argparse
 import json
 import os
+import wandb
+
+wandb_dict = {}
+
+def init_wandb(args):
+    wandb.init(config=args, dir=os.path.join(args.log_path, 'wandb/'))
+    return 
+    
+def wandb_log():
+    global wandb_dict
+    if len(wandb_dict) > 0:
+        wandb.log(wandb_dict)
+    wandb_dict = {}
+
+
+def wandb_update_value(names_values):
+    for (name, value) in names_values:
+        wandb_dict[name] = value
 
 def get_args():
     parser = argparse.ArgumentParser()

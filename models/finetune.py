@@ -185,7 +185,7 @@ class FineTune(nn.Module):
                 loss = ce_loss + self.gl_coeff * group_lasso_reg
                 epoch_loss += loss.item()
                 epoch_ce_loss += ce_loss.item()
-                epoch_gl_reg += group_lasso_reg.item()
+                epoch_gl_reg += self.gl_coeff * group_lasso_reg.item()
 
                 preds = logits.argmax(dim=1)
                 all_preds.extend(preds.detach().cpu().numpy())
@@ -205,6 +205,13 @@ class FineTune(nn.Module):
 
         train_acc = accuracy_score(y_pred=all_preds, y_true=all_trues)
         train_loss = epoch_loss / len(data_loader)
+        train_ce_loss = epoch_ce_loss / len(data_loader)
+        train_gl_reg = epoch_gl_reg / len(data_loader)
+
+        utils.wandb_update_value({'train/acc': train_acc,
+                                    'train/loss': train_loss,
+                                    'train/ce_loss': train_ce_loss,
+                                    'train/group_lasso': train_gl_reg})
 
         return train_acc, train_loss
                 
@@ -231,13 +238,11 @@ class FineTune(nn.Module):
                 loss = ce_loss + self.gl_coeff * group_lasso_reg
                 epoch_loss += loss.item()
                 epoch_ce_loss += ce_loss.item()
-                epoch_gl_reg += group_lasso_reg.item()
+                epoch_gl_reg += self.gl_coeff * group_lasso_reg.item()
 
                 preds = logits.argmax(dim=1)
                 all_preds.extend(preds.detach().cpu().numpy())
                 all_trues.extend(l.cpu().numpy())
-
-                
                 
                 postfixes = {f'val_loss': f'{epoch_loss / (batch_id) :.4f}',
                              f'val_ce_loss': f'{epoch_ce_loss / (batch_id) :.4f}',
@@ -248,6 +253,13 @@ class FineTune(nn.Module):
 
         eval_loss = epoch_loss / len(data_loader)
         eval_acc = accuracy_score(y_pred=all_preds, y_true=all_trues)
+        eval_ce_loss = epoch_ce_loss / len(data_loader)
+        eval_gl_reg = epoch_gl_reg / len(data_loader)
+
+        utils.wandb_update_value({'val/acc': eval_acc,
+                                    'val/loss': eval_loss,
+                                    'val/ce_loss': eval_ce_loss,
+                                    'val/group_lasso': eval_gl_reg})
 
         return eval_acc, eval_loss
 
@@ -258,6 +270,7 @@ class FineTune(nn.Module):
             print('train_acc: ', train_acc)
             val_acc, val_loss = self.eval_step(epoch=epoch, data_loader=val_data_loader)
             print('val_acc: ', val_acc)
+            utils.wandb_log()
 
 
             
