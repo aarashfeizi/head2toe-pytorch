@@ -14,9 +14,9 @@ import wandb
 wandb_dict = {}
 
 def init_wandb(args):
-    wandb.init(config=args, dir=os.path.join(args.log_path, 'wandb/'))
+    wandb.init(config=args, dir=os.path.join(args.env.log_path, 'wandb/'))
     return 
-    
+
 def wandb_log():
     global wandb_dict
     if len(wandb_dict) > 0:
