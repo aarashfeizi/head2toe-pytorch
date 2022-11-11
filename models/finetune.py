@@ -10,6 +10,7 @@ from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score
 import utils
+import os, pickle
 
 
 
@@ -21,6 +22,10 @@ class FineTune(nn.Module):
         self.img_size = args.data.img_size
         self.nb_classes = args.data.nb_classes
 
+        self.backbone_name = backbone
+        self.dataset_name = args.data.dataset
+
+        self.use_cache = args.data.use_cache
         self.epochs = args.env.epochs
         self.gl_p = args.model.loss.gl_p
         self.gl_r = args.model.loss.gl_r
@@ -223,13 +228,10 @@ class FineTune(nn.Module):
 
     def _train_classifier(self, train_data_loader, val_data_loader):
 
-        
-
         for epoch in range(1, self.epochs + 1):
-            epoch_loss = 0
-            train_acc, train_loss = self.train_step(epoch=0, data_loader=train_data_loader)
+            train_acc, train_loss = self.train_step(epoch=epoch, data_loader=train_data_loader)
             print('train_acc: ', train_acc)
-            val_acc, val_loss = self.eval_step(epoch=0, data_loader=val_data_loader)
+            val_acc, val_loss = self.eval_step(epoch=epoch, data_loader=val_data_loader)
             print('val_acc: ', val_acc)
 
 
@@ -237,20 +239,48 @@ class FineTune(nn.Module):
             
 
     def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None):
-        train_embeddings, train_labels = self._get_embedding(train_loader)
-        train_embeddings = self._process_embeddings(embeddings=train_embeddings,
-                                                    selected_features=selected_feature_indices,
-                                                    normalization=self.emb_normalization)   
-        train_emb_dataset = list(zip(train_embeddings, train_labels))
-        train_embedding_dl = DataLoader(train_emb_dataset, shuffle=True, batch_size=self.train_batch_size)
-        if val_loader is not None:
-            val_embeddings, val_labels = self._get_embedding(val_loader)
-            val_embeddings = self._process_embeddings(embeddings=val_embeddings,
+        emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_{self.target_size}')
+        train_emb_path = os.path.join(emb_path, 'train.pkl')
+        val_emb_path = os.path.join(emb_path, 'val.pkl')
+        if self.use_cache and os.path.exists(train_emb_path):
+            train_emb_dataset = self._load_dataset(train_emb_path)
+        else:
+            train_embeddings, train_labels = self._get_embedding(train_loader)
+            train_embeddings = self._process_embeddings(embeddings=train_embeddings,
                                                         selected_features=selected_feature_indices,
-                                                        normalization=self.emb_normalization)   
-            val_emb_dataset = list(zip(val_embeddings, val_labels))
+                                                        normalization=self.emb_normalization) 
+            train_emb_dataset = list(zip(train_embeddings, train_labels))
+
+            if self.use_cache:
+                self._save_dataset(train_emb_dataset, train_emb_path)
+        
+        train_embedding_dl = DataLoader(train_emb_dataset, shuffle=True, batch_size=self.train_batch_size)
+
+        if val_loader is not None:
+            if self.use_cache and os.path.exists(val_emb_path):
+                val_emb_dataset = self._load_dataset(val_emb_path)
+            else:
+                val_embeddings, val_labels = self._get_embedding(val_loader)
+                val_embeddings = self._process_embeddings(embeddings=val_embeddings,
+                                                            selected_features=selected_feature_indices,
+                                                            normalization=self.emb_normalization)   
+                val_emb_dataset = list(zip(val_embeddings, val_labels))
+
+                if self.use_cache:
+                    self._save_dataset(val_emb_dataset, val_emb_path)
+                    
             val_embedding_dl = DataLoader(val_emb_dataset, shuffle=True, batch_size=self.val_batch_size)
         else:
             val_embedding_dl = None
 
         self._train_classifier(train_embedding_dl, val_embedding_dl)
+
+    def _load_dataset(data_path):
+        with open(data_path, 'rb') as f:
+            data = pickle.load(f)
+        return data
+
+    def _save_dataset(data, data_path):
+        with open(data_path, 'wb') as f:
+            pickle.dump(data, f)
+        

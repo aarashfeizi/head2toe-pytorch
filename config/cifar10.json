@@ -11,6 +11,7 @@
     },
 
     "data": {
+      "use_cache": true,
       "dataset": "cifar10",
       "dataset_path": "../../scratch/cifar10",
       "nb_classes": 10,

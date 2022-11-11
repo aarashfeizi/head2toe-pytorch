@@ -8,7 +8,7 @@ from tqdm import tqdm
 import numpy as np
 import argparse
 import json
-
+import os
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -120,4 +120,10 @@ def get_dataset(args, mode='train'):
 
     return data
 
+def make_dirs(path):
+  if os.path.exists(path):
+    return
+  else:
+    os.makedirs(path)
+    return
 
