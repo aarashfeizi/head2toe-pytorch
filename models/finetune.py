@@ -229,8 +229,6 @@ class FineTune(nn.Module):
         with tqdm(total=len(data_loader), desc=f"Validating epoch {epoch}: ") as t:
             for batch_id, batch in enumerate(data_loader, 1):
                 x, l = batch
-                x = torch.tensor(x)
-                l = torch.tensor(l)
                 if self.use_cuda:
                     x = x.cuda()
                     l = l.cuda()
