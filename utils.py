@@ -159,9 +159,11 @@ def flatten_and_concat(output_dict, pool_size=0, target_size=0,
 
 def get_dataset(args, mode='train'):
     if mode == 'train':
-        transform = transforms.Compose([transforms.RandomResizedCrop(size=args.img_size),
-                                        transforms.RandomHorizontalFlip(p=0.5),
-                                        transforms.ColorJitter(),
+        transform = transforms.Compose([
+                                        # transforms.RandomResizedCrop(size=args.img_size),
+                                        # transforms.RandomHorizontalFlip(p=0.5),
+                                        # transforms.ColorJitter(),
+                                        transforms.Resize(size=int(args.img_size)),
                                         transforms.ToTensor(),
                                         transforms.Normalize(mean=args.normalize_param['mean'], std=args.normalize_param['std'])])
     else:
