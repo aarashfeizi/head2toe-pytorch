@@ -25,6 +25,9 @@ class FineTune(nn.Module):
         self.backbone_name = backbone
         self.dataset_name = args.data.dataset
 
+        self.log_path = args.env.log_path
+        utils.make_dirs(self.log_path)
+
         self.use_cache = args.data.use_cache
         self.epochs = args.env.epochs
         self.gl_p = args.model.loss.gl_p
