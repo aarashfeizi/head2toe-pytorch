@@ -12,6 +12,7 @@
     "train_batch_size": 128,
     "val_batch_size": 256,
     "wandb": true,
+    "es_tol": 10,
 
     "data_use_cache": true,
     "dataset": "cifar10",

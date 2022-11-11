@@ -28,6 +28,9 @@ class FineTune(nn.Module):
         self.log_path = args.log_path
         utils.make_dirs(self.log_path)
 
+        self.tol_count = 0
+        self.es_tolerence = args.es_tol
+
         self.use_cache = args.data_use_cache
         self.epochs = args.epochs
         self.gl_p = args.loss_gl_p
@@ -264,13 +267,22 @@ class FineTune(nn.Module):
         return eval_acc, eval_loss
 
     def _train_classifier(self, train_data_loader, val_data_loader):
-
+        best_val_acc = 0
         for epoch in range(1, self.epochs + 1):
             train_acc, train_loss = self.train_step(epoch=epoch, data_loader=train_data_loader)
             print('train_acc: ', train_acc)
             val_acc, val_loss = self.eval_step(epoch=epoch, data_loader=val_data_loader)
+            if val_acc >= best_val_acc:
+                best_val_acc = val_acc
+                self.tol_count  = 0
+            else:
+                self.tol_count += 1
             print('val_acc: ', val_acc)
             utils.wandb_log()
+            if self.es_tolerence > 0 and self.tol_count > self.es_tolerence:
+                print(f'Early stopping, val_acc did not improve over {best_val_acc} for {self.es_tolerence} epochs!')
+                break
+
 
 
             

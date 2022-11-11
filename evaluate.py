@@ -11,6 +11,8 @@ def main():
 
     if args.wandb:
         args = utils.init_wandb(args)
+    
+    print(args)
 
     model = finetune.FineTune(args=args, backbone='resnet50')
     
