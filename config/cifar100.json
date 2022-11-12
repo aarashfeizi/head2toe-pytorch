@@ -2,6 +2,7 @@
     "loss_gl_coeff": 1,
     "lr": 1e-3,
     "emb_normalization": "unit_vector",
+    "target_size": 8192,
     
     "cuda": true,
     "seed": 402, 

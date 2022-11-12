@@ -40,7 +40,7 @@ class FineTune(nn.Module):
         self.gl_coeff = args.loss_gl_coeff
         self.emb_normalization = args.emb_normalization
         self.train_to_val_ratio_split = args.train_to_val_ratio_split
-        self.target_size = 8192
+        self.target_size = args.target_size
         self.train_batch_size = args.train_batch_size
         self.val_batch_size = args.val_batch_size
         if backbone == 'resnet50':
@@ -100,7 +100,7 @@ class FineTune(nn.Module):
                     x = x.cuda()
                 out = self.backbone(x)
                 batch_embedding_lists.append(utils.flatten_and_concat(output_dict=out, 
-                                                target_size=8192)) # should I detach?
+                                                target_size=self.target_size)) # should I detach?
                 labels.append(l)
 
                 t.update()
