@@ -56,12 +56,23 @@ def seed_all(seed, cuda=False):
 
     return True
 
+BACKBONE_MODES = ['supervised',
+                  'swav',
+                  'vicreg',
+                  'barlow',
+                  'dino',
+                  'simsiam',
+                  'byol',
+                  'simclr',
+                  'unigrad']
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_file', default='config/cifar100.json', type=str, help='Path to config file')
     parser.add_argument('--batch_size', default=None, type=int, help='Batch size')
     parser.add_argument('--lr', default=None, type=float, help='Learning rate')
     parser.add_argument('--loss_gl_coeff', default=None, type=float, help='Group Lasso coefficient')
+    parser.add_argument('--backbone_mode', default='supervised', type=str, help='Path to config file', choices=BACKBONE_MODES)
 
 
     args = parser.parse_args()

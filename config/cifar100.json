@@ -8,6 +8,7 @@
     "seed": 402, 
     "gpu_ids": 0,
     "log_path": "../../scratch/head2toe-pytorch/logs/",
+    "ssl_backbone_path": "../../scratch/head2toe-pytorch/ssl_backbones",
     "num_workers": 10,
     "epochs": 10,
     "batch_size": 256,

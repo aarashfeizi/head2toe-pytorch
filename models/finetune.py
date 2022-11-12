@@ -9,7 +9,7 @@ from collections import OrderedDict
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score
-import utils
+import utils, ssl_utils
 import os, pickle
 
 from sklearn.model_selection import train_test_split
@@ -44,7 +44,15 @@ class FineTune(nn.Module):
         self.train_batch_size = args.train_batch_size
         self.val_batch_size = args.val_batch_size
         if backbone == 'resnet50':
-            self.backbone = resnet.resnet50(ResNet50_Weights.IMAGENET1K_V2)
+            if args.backbone_mode == 'supervised':
+                self.backbone = resnet.resnet50(ResNet50_Weights.IMAGENET1K_V2)
+            else:
+                self.backbone = resnet.resnet50()
+                self.backbone = ssl_utils.load_ssl_weight_to_model(model=self.backbone,
+                                                                method_name=args.backbone_mode,
+                                                                arch_name='resnet50',
+                                                                ssl_path=args.ssl_backbone_path)
+                
         else:
             raise Exception('Backbone not supported')
 
