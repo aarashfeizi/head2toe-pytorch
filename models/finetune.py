@@ -42,6 +42,7 @@ class FineTune(nn.Module):
         self.emb_normalization = args.emb_normalization
         self.train_to_val_ratio_split = args.train_to_val_ratio_split
         self.target_size = args.target_size
+        
         self.train_batch_size = args.train_batch_size
         self.val_batch_size = args.val_batch_size
         if backbone == 'resnet50':
