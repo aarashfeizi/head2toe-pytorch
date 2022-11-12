@@ -139,6 +139,7 @@ def load_ssl_weight_to_model(model, method_name, arch_name, ssl_path='./'):
     if method_name == 'default':
         return model
     else:
+        print('Fetching', checkpoint_path)
         if os.path.exists(checkpoint_path):
             checkpoint = torch.load(checkpoint_path, map_location='cpu')
             model.load_state_dict(checkpoint['model_state_dict'], strict=False)
