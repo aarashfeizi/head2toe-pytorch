@@ -25,6 +25,7 @@ class FineTune(nn.Module):
         self.nb_classes = args.nb_classes
 
         self.backbone_name = backbone
+        self.backbone_mode = args.backbone_mode
         self.dataset_name = args.dataset
 
         self.log_path = args.log_path
@@ -44,12 +45,12 @@ class FineTune(nn.Module):
         self.train_batch_size = args.train_batch_size
         self.val_batch_size = args.val_batch_size
         if backbone == 'resnet50':
-            if args.backbone_mode == 'supervised':
+            if self.backbone_mode == 'supervised':
                 self.backbone = resnet.resnet50(ResNet50_Weights.IMAGENET1K_V2)
             else:
                 self.backbone = resnet.resnet50()
                 self.backbone = ssl_utils.load_ssl_weight_to_model(model=self.backbone,
-                                                                method_name=args.backbone_mode,
+                                                                method_name=self.backbone_mode,
                                                                 arch_name='resnet50',
                                                                 ssl_path=args.ssl_backbone_path)
                 
@@ -292,7 +293,7 @@ class FineTune(nn.Module):
                 break
 
     def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None):
-        emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.output_size}')
+        emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_{self.backbone_mode}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.output_size}')
         utils.make_dirs(emb_path)
         train_emb_path = os.path.join(emb_path, 'train.pkl')
         val_emb_path = os.path.join(emb_path, 'val.pkl')
