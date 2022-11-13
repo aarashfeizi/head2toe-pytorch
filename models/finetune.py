@@ -42,7 +42,7 @@ class FineTune(nn.Module):
         self.emb_normalization = args.emb_normalization
         self.train_to_val_ratio_split = args.train_to_val_ratio_split
         self.target_size = args.target_size
-        
+
         self.train_batch_size = args.train_batch_size
         self.val_batch_size = args.val_batch_size
         if backbone == 'resnet50':
@@ -173,7 +173,7 @@ class FineTune(nn.Module):
 
     def get_feature_importance(self):
         fc_weights = self.classification_layer.fc.weight
-        feature_importance = torch.norm(fc_weights, dim=0, p=2).detach().cpu()
+        feature_importance = torch.norm(fc_weights, dim=0, p=2).detach().cpu().numpy()
         return feature_importance
     
     def train_step(self, epoch, data_loader):

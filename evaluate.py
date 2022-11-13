@@ -8,9 +8,14 @@ import os
 
 def main():
     args = utils.get_args()
-
+    save_path = args.log_path
     if args.wandb:
         args = utils.init_wandb(args)
+        r = wandb.run
+        save_dir = f'{r.id}_{r.name}_{r.start_time}' 
+        save_path = os.path.join(save_path, save_dir)
+    
+
     
     print(args)
     utils.seed_all(args.seed, args.cuda)
@@ -29,6 +34,9 @@ def main():
 
     model.optimize_finetune(train_loader=train_data,
                             val_loader=val_data)
+    
+    f_importance = model.get_feature_importance()
+    utils.save_np(f_importance, save_path)    
 
 
     # import pdb
