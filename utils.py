@@ -199,4 +199,5 @@ def make_dirs(path):
     return
 
 def save_np(f_importance, save_path):
-    np.save(os.path.join(save_path, 'feature_importance.npy'), f_importance)
+  make_dirs(save_path)
+  np.save(os.path.join(save_path, 'feature_importance.npy'), f_importance)
