@@ -96,6 +96,7 @@ class FineTune_FS(finetune.FineTune):
 
         selected_features, mean_scores = self._select_features(train_loader=train_loader, val_loader=val_loader)
 
+        self.gl_coeff = 0 # for final finetuning, no regularizer
         final_val_acc = self.optimize_finetune(train_loader=train_loader, 
                                 val_loader=val_loader,
                                 selected_feature_indices=selected_features)
