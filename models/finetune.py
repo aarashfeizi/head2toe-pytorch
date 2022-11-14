@@ -82,15 +82,22 @@ class FineTune(nn.Module):
         else:
             raise Exception('Optimizer not set, or not supported')
     
-    def _prepare_fc(self):
-        x = torch.rand((1, 3, self.img_size, self.img_size))
-        out = self.backbone(x)
-        out = utils.flatten_and_concat(out, target_size=self.target_size)
-        self.output_size = 0
-        self.embedding_sizes = []
-        for o in out:
-            self.output_size += o.shape[-1]
-            self.embedding_sizes.append(o.shape[-1])
+    def _prepare_fc(self, selected_feature_indices=None):
+        if selected_feature_indices is None:
+            x = torch.rand((1, 3, self.img_size, self.img_size))
+            out = self.backbone(x)
+            out = utils.flatten_and_concat(out, target_size=self.target_size)
+            self.output_size = 0
+            self.embedding_sizes = []
+            for o in out:
+                self.output_size += o.shape[-1]
+                self.embedding_sizes.append(o.shape[-1])
+        else:
+            self.output_size = 0
+            self.embedding_sizes = []
+            for o in selected_feature_indices:
+                self.output_size += len(o)
+                self.embedding_sizes.append(len(o))
 
         print('Output feature size is:', self.output_size)
 
@@ -147,8 +154,13 @@ class FineTune(nn.Module):
         if selected_features:
             pass
         # Following removes the backbones altogether if no feature is selected.
+        # embeddings = [
+        #     torch.gather(embedding, index=indices.repeat([embedding.shape[0], 1]), dim=1) for embedding, indices
+        #     in zip(embeddings, selected_features)
+        #     if np.prod(indices.shape) > 0
+        # ]
         embeddings = [
-            torch.gather(embedding, index=indices, dim=1) for embedding, indices
+            embedding[:, indices] for embedding, indices
             in zip(embeddings, selected_features)
             if np.prod(indices.shape) > 0
         ]
@@ -305,12 +317,12 @@ class FineTune(nn.Module):
         return best_val_acc
 
     def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None):
-        self._prepare_fc()
+        self._prepare_fc(selected_feature_indices)
         emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_{self.backbone_mode}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.output_size}')
         utils.make_dirs(emb_path)
         train_emb_path = os.path.join(emb_path, 'train.pkl')
         val_emb_path = os.path.join(emb_path, 'val.pkl')
-        if self.use_cache and os.path.exists(train_emb_path):
+        if self.use_cache and os.path.exists(train_emb_path) and selected_feature_indices is None:
             train_emb_dataset = self._load_dataset(train_emb_path)
         else:
             train_embeddings, train_labels = self._get_embedding(train_loader)

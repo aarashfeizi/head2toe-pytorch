@@ -34,7 +34,7 @@ class FineTune_FS(finetune.FineTune):
         # We need to interpolate the scores towards it's mean.
             scores, _ = self._interpolate_scores_towards_mean(
                 scores, mean_interpolation_coef)
-        _, sorted_indices = torch.topk(input=torch.tensor(scores), k=n_kept)
+        temp, sorted_indices = torch.topk(input=torch.tensor(scores), k=n_kept)
         selected_indices = sorted_indices[self.keep_fraction_offset:]
         return selected_indices
 
@@ -89,15 +89,12 @@ class FineTune_FS(finetune.FineTune):
             all_scores, mean_interpolation_coef=self.mean_interpolation_coef)
         _, mean_scores = self._interpolate_scores_towards_mean(all_scores, 1.)
         selected_feature_indices = self._broadcast_indices(kept_indices_all)
-
         return selected_feature_indices, mean_scores
 
 
     def evaluate(self, train_loader, val_loader):
 
-        selected_features = self._select_features(train_loader=train_loader, val_loader=val_loader)
-
-        print(selected_features)
+        selected_features, mean_scores = self._select_features(train_loader=train_loader, val_loader=val_loader)
 
         final_val_acc = self.optimize_finetune(train_loader=train_loader, 
                                 val_loader=val_loader,
