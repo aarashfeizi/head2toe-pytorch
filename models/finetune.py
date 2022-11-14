@@ -64,18 +64,20 @@ class FineTune(nn.Module):
         self.loss_fn = CrossEntropyLoss()
 
         self.classification_layer = None
+        self.feature_importance = []
         self.output_size = -1 # will be set in _prepare_fc()
-        self.classification_layer = self._prepare_fc()
+        self.classification_layer = None
 
         self.optimizer_name = args.optimizer
-        self.optimizer = self._get_optimizer(args=args)
+        self.args = args
+        self.optimizer = None
 
     
-    def _get_optimizer(self, args):
+    def _set_optimizer(self, args):
         if self.optimizer_name == 'sgd':
-            return torch.optim.SGD(params=self.classification_layer.parameters(), momentum=0.9, lr=args.lr)
+            self.optimizer = torch.optim.SGD(params=self.classification_layer.parameters(), momentum=0.9, lr=args.lr)
         elif self.optimizer_name == 'adam':
-            return torch.optim.Adam(params=self.classification_layer.parameters(), lr=args.lr)
+            self.optimizer = torch.optim.Adam(params=self.classification_layer.parameters(), lr=args.lr)
         else:
             raise Exception('Optimizer not set, or not supported')
     
@@ -84,14 +86,14 @@ class FineTune(nn.Module):
         out = self.backbone(x)
         out = utils.flatten_and_concat(out, target_size=self.target_size)
         self.output_size = 0
-        
+        self.embedding_sizes = []
         for o in out:
             self.output_size += o.shape[-1]
-            
+            self.embedding_sizes.append(o.shape[-1])
 
         print('Output feature size is:', self.output_size)
 
-        return nn.Sequential(OrderedDict([('fc', nn.Linear(self.output_size, self.nb_classes))]))
+        self.classification_layer = nn.Sequential(OrderedDict([('fc', nn.Linear(self.output_size, self.nb_classes))]))
 
     
     def __group_lasso_reg(self):
@@ -144,11 +146,11 @@ class FineTune(nn.Module):
         if selected_features:
             pass
         # Following removes the backbones altogether if no feature is selected.
-        # embeddings = [
-        #     tf.gather(embedding, indices, axis=1) for embedding, indices
-        #     in zip(embeddings, selected_features)
-        #     if np.prod(indices.shape) > 0
-        # ]
+        embeddings = [
+            torch.gather(embedding, index=indices, dim=1) for embedding, indices
+            in zip(embeddings, selected_features)
+            if np.prod(indices.shape) > 0
+        ]
         if normalization == 'unit_vector':
             embeddings = [self._zero_aware_normalize(e, axis=1) for e in embeddings]
         
@@ -170,11 +172,14 @@ class FineTune(nn.Module):
         # Following will have nans when the norm of vector(the divider) is zero.
         normalized = embedding / norms
         return torch.where(norms_equal_to_zero, torch.zeros_like(embedding), normalized)
+    
+    def update_feature_importance(self):
+        fc_weights = self.classification_layer.fc.weight
+        self.feature_importance = torch.norm(fc_weights, dim=0, p=2).detach().cpu().numpy()
+        return
 
     def get_feature_importance(self):
-        fc_weights = self.classification_layer.fc.weight
-        feature_importance = torch.norm(fc_weights, dim=0, p=2).detach().cpu().numpy()
-        return feature_importance
+        return self.feature_importance
     
     def train_step(self, epoch, data_loader):
         # if self.finetune_backbone:
@@ -277,12 +282,14 @@ class FineTune(nn.Module):
         return eval_acc, eval_loss
 
     def _train_classifier(self, train_data_loader, val_data_loader):
+        self._set_optimizer(args=self.args)
         best_val_acc = 0
         for epoch in range(1, self.epochs + 1):
             train_acc, train_loss = self.train_step(epoch=epoch, data_loader=train_data_loader)
             print('train_acc: ', train_acc)
             val_acc, val_loss = self.eval_step(epoch=epoch, data_loader=val_data_loader)
             if val_acc >= best_val_acc:
+                self.update_feature_importance()
                 best_val_acc = val_acc
                 self.tol_count  = 0
             else:
@@ -293,7 +300,10 @@ class FineTune(nn.Module):
                 print(f'Early stopping, val_acc did not improve over {best_val_acc} for {self.es_tolerence} epochs!')
                 break
 
+        return best_val_acc
+
     def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None):
+        self._prepare_fc()
         emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_{self.backbone_mode}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.output_size}')
         utils.make_dirs(emb_path)
         train_emb_path = os.path.join(emb_path, 'train.pkl')
@@ -339,8 +349,17 @@ class FineTune(nn.Module):
             train_embedding_dl = DataLoader(train_emb_dataset, shuffle=True, batch_size=self.train_batch_size)
             val_embedding_dl = DataLoader(val_emb_dataset, shuffle=True, batch_size=self.val_batch_size)
             
+        if self.use_cuda:
+            self.cuda()
 
-        self._train_classifier(train_embedding_dl, val_embedding_dl)
+        return self._train_classifier(train_embedding_dl, val_embedding_dl)
+
+    def evaluate(self, train_loader, val_laoder):
+        final_val_acc = self.optimize_finetune(train_loader=train_loader, 
+                                val_loader=val_laoder,
+                                selected_feature_indices=None)
+
+        print('Final validation acc:', final_val_acc)
 
     def _load_dataset(self, data_path):
         with open(data_path, 'rb') as f:

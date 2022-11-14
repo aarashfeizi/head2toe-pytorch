@@ -71,6 +71,7 @@ def get_args():
     parser.add_argument('--config_file', default='config/cifar100.json', type=str, help='Path to config file')
     parser.add_argument('--batch_size', default=None, type=int, help='Batch size')
     parser.add_argument('--lr', default=None, type=float, help='Learning rate')
+    parser.add_argument('--fraction', default=None, type=float, help='Learning rate')
     parser.add_argument('--loss_gl_coeff', default=None, type=float, help='Group Lasso coefficient')
     parser.add_argument('--backbone_mode', default='supervised', type=str, help='Path to config file', choices=BACKBONE_MODES)
 

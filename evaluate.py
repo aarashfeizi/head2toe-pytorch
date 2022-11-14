@@ -1,7 +1,7 @@
 import torch
 import utils
 import datasets
-from models import finetune
+from models import finetune, finetune_fs
 import wandb
 import os
 
@@ -20,10 +20,10 @@ def main():
     print(args)
     utils.seed_all(args.seed, args.cuda)
 
-    model = finetune.FineTune(args=args, backbone='resnet50')
-    
-    if args.cuda:
-        model.cuda()
+    if args.select_features:
+        model = finetune_fs.FineTune_FS(args=args, backbone='resnet50')
+    else:
+        model = finetune.FineTune(args=args, backbone='resnet50')
 
     train_data = utils.get_dataset(args=args, mode='train')
     if args.train_to_val_ratio_split == 0:
@@ -32,7 +32,7 @@ def main():
         val_data = None
 
 
-    model.optimize_finetune(train_loader=train_data,
+    model.evaluate(train_loader=train_data,
                             val_loader=val_data)
     
     f_importance = model.get_feature_importance()
