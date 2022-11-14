@@ -23,6 +23,7 @@ class FineTune(nn.Module):
 
         self.img_size = args.img_size
         self.nb_classes = args.nb_classes
+        self.using_wandb = args.wandb
 
         self.backbone_name = backbone
         self.backbone_mode = args.backbone_mode
@@ -295,7 +296,8 @@ class FineTune(nn.Module):
             else:
                 self.tol_count += 1
             print('val_acc: ', val_acc)
-            utils.wandb_log()
+            if self.using_wandb:
+                utils.wandb_log()
             if self.es_tolerence > 0 and self.tol_count > self.es_tolerence:
                 print(f'Early stopping, val_acc did not improve over {best_val_acc} for {self.es_tolerence} epochs!')
                 break
@@ -354,9 +356,9 @@ class FineTune(nn.Module):
 
         return self._train_classifier(train_embedding_dl, val_embedding_dl)
 
-    def evaluate(self, train_loader, val_laoder):
+    def evaluate(self, train_loader, val_loader):
         final_val_acc = self.optimize_finetune(train_loader=train_loader, 
-                                val_loader=val_laoder,
+                                val_loader=val_loader,
                                 selected_feature_indices=None)
 
         print('Final validation acc:', final_val_acc)
