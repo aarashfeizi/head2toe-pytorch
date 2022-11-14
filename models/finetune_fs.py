@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score
 import utils, ssl_utils
 import os, pickle
-import finetune
+from models import finetune
 
 from sklearn.model_selection import train_test_split
 
@@ -89,7 +89,7 @@ class FineTune_FS(finetune.FineTune):
             mean_interpolation_coef=self.mean_interpolation_coef)
         _, mean_scores = self._interpolate_scores_towards_mean(all_scores, 1.)
         selected_feature_indices = self._broadcast_indices(kept_indices_all)
-        
+
         return selected_feature_indices, mean_scores
 
 
