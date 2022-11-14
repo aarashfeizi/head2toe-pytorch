@@ -12,8 +12,9 @@ def main():
     if args.wandb:
         args = utils.init_wandb(args)
         r = wandb.run
-        save_dir = f'{r.id}_{r.name}_{r.start_time}' 
+        save_dir = os.path.join(f'{r.id}, {r.name}_{r.start_time}')
         save_path = os.path.join(save_path, save_dir)
+        utils.make_dirs(save_path)
     
 
     
