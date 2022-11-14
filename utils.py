@@ -80,6 +80,9 @@ def get_args():
 
     with open(args.config_file, 'r') as f:
         cfg_dict = json.load(f)
+        for k, v in vars(args).items():
+          if k not in cfg_dict:
+            cfg_dict[k] = v
 
     if args.lr:
       cfg_dict['lr'] = args.lr
