@@ -369,10 +369,9 @@ class FineTune(nn.Module):
                                                             selected_features=selected_feature_indices,
                                                             normalization=self.emb_normalization)   
                 val_emb_dataset = list(zip(val_embeddings.numpy(), val_labels.numpy()))
-
-
-                    
-            val_embedding_dl = DataLoader(val_emb_dataset, shuffle=True, batch_size=self.val_batch_size)
+    
+                val_embedding_dl = DataLoader(val_emb_dataset, shuffle=True, batch_size=self.val_batch_size)
+                
         else: # i.e. val split
             assert self.train_to_val_ratio_split != 0
             tr_x = np.array(list(list(zip(*train_emb_dataset))[0]))
