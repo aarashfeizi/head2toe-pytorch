@@ -94,7 +94,7 @@ class FineTune_FS(finetune.FineTune):
 
     def evaluate(self, train_loader, val_loader):
 
-        selected_features, mean_scores = self._select_features(train_loader=train_loader, val_loader=val_loader)
+        selected_features, mean_scores = self._select_features(train_loader=train_loader, val_loader=None) # choose with cross validating
 
         self.gl_coeff = 0 # for final finetuning, no regularizer
         final_val_acc = self.optimize_finetune(train_loader=train_loader, 

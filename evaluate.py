@@ -28,7 +28,7 @@ def main():
         model = finetune.FineTune(args=args, backbone='resnet50')
 
     train_data = utils.get_dataset(args=args, mode='train')
-    if args.train_to_val_ratio_split == 0:
+    if args.test:
         val_data = utils.get_dataset(args=args, mode='val')
     else:
         val_data = None

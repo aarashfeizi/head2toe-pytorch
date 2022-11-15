@@ -336,7 +336,7 @@ class FineTune(nn.Module):
         
         train_embedding_dl = DataLoader(train_emb_dataset, shuffle=True, batch_size=self.train_batch_size)
 
-        if val_loader is not None and self.train_to_val_ratio_split == 0:
+        if val_loader is not None:
             if self.use_cache and os.path.exists(val_emb_path):
                 val_emb_dataset = self._load_dataset(val_emb_path)
             else:

@@ -8,6 +8,7 @@
     "fraction_offset": 0,
     "mean_interpolation_coef": 0,
     "average_over_k": 1,
+    "test": false,
     
     "cuda": true,
     "seed": 402,
