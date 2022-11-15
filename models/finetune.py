@@ -151,19 +151,13 @@ class FineTune(nn.Module):
         """
         # shape= (n_image, n_features)
         assert normalization in ('unit_vector', 'per_feature', '')
+        
         if selected_features:
-            pass
-        # Following removes the backbones altogether if no feature is selected.
-        # embeddings = [
-        #     torch.gather(embedding, index=indices.repeat([embedding.shape[0], 1]), dim=1) for embedding, indices
-        #     in zip(embeddings, selected_features)
-        #     if np.prod(indices.shape) > 0
-        # ]
-        embeddings = [
-            embedding[:, indices] for embedding, indices
-            in zip(embeddings, selected_features)
-            if np.prod(indices.shape) > 0
-        ]
+            embeddings = [
+                embedding[:, indices] for embedding, indices
+                in zip(embeddings, selected_features)
+                if np.prod(indices.shape) > 0
+            ]
         if normalization == 'unit_vector':
             embeddings = [self._zero_aware_normalize(e, axis=1) for e in embeddings]
         
