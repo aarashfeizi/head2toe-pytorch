@@ -365,9 +365,9 @@ class FineTune(nn.Module):
                     self._save_dataset(to_save, val_emb_path)
                     self._save_dataset_npy(val_labels.numpy(), val_lbls_path)
 
-                val_embeddings = self._process_embeddings(embeddings=val_embeddings,
-                                                            selected_features=selected_feature_indices,
-                                                            normalization=self.emb_normalization)   
+            val_embeddings = self._process_embeddings(embeddings=val_embeddings,
+                                                        selected_features=selected_feature_indices,
+                                                        normalization=self.emb_normalization)   
             val_emb_dataset = list(zip(val_embeddings.numpy(), val_labels.numpy()))
     
             val_embedding_dl = DataLoader(val_emb_dataset, shuffle=True, batch_size=self.val_batch_size)
