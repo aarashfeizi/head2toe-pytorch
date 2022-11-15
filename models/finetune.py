@@ -43,6 +43,7 @@ class FineTune(nn.Module):
         self.emb_normalization = args.emb_normalization
         self.train_to_val_ratio_split = args.train_to_val_ratio_split
         self.target_size = args.target_size
+        self.layers_to_use = args.layers_to_use
 
         self.train_batch_size = args.train_batch_size
         self.val_batch_size = args.val_batch_size
@@ -87,6 +88,7 @@ class FineTune(nn.Module):
         if selected_feature_indices is None:
             x = torch.rand((1, 3, self.img_size, self.img_size))
             out = self.backbone(x)
+            out = self._choose_layers(out)
             out = utils.flatten_and_concat(out, target_size=self.target_size)
             self.output_size = 0
             self.embedding_sizes = []
@@ -112,6 +114,17 @@ class FineTune(nn.Module):
         fc_weights = self.classification_layer.fc.weight
         return torch.norm(torch.norm(fc_weights, dim=0, p=self.gl_r), p=self.gl_r)
 
+    def _choose_layers(self, output):
+        if self.layers_to_use == "all" or set(output.keys()) == set(self.layers_to_use):
+            return output
+        else:
+            assert len(set(self.layers_to_use) - set(output.keys()))
+            final_output = {}
+            self.layers_to_use = sorted(self.layers_to_use)
+            final_output = {l_n: output[l_n] for l_n in self.layers_to_use}
+            return final_output
+                
+
     def _get_embedding(self, dataloader):
         self.backbone.eval()
         batch_embedding_lists = []
@@ -122,6 +135,7 @@ class FineTune(nn.Module):
                 if self.use_cuda:
                     x = x.cuda()
                 out = self.backbone(x)
+                out = self._choose_layers(out)
                 batch_embedding_lists.append(utils.flatten_and_concat(output_dict=out, 
                                                 target_size=self.target_size)) # should I detach?
                 labels.append(l)

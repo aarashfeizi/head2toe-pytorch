@@ -9,6 +9,7 @@
     "mean_interpolation_coef": 0,
     "average_over_k": 1,
     "test": false,
+    "layers_to_use": "all",
     
     "cuda": true,
     "seed": 402, 
