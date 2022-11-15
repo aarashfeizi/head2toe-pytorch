@@ -118,7 +118,7 @@ class FineTune(nn.Module):
         if self.layers_to_use == "all" or set(output.keys()) == set(self.layers_to_use):
             return output
         else:
-            assert len(set(self.layers_to_use) - set(output.keys()))
+            assert len(set(self.layers_to_use) - set(output.keys())) == 0
             final_output = {}
             self.layers_to_use = sorted(self.layers_to_use)
             final_output = {l_n: output[l_n] for l_n in self.layers_to_use}

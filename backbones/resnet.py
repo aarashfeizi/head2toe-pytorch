@@ -179,6 +179,25 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
+    """
+    all layers for resnet50: # ['after_root', 'block1_unit1_layer0', 'block1_unit1_layer1', 'block1_unit1_layer2',
+                                            'block1_unit2_layer0', 'block1_unit2_layer1', 'block1_unit2_layer2', 
+                                            'block1_unit3_layer0', 'block1_unit3_layer1', 'block1_unit3_layer2', 
+                                            'block2_unit1_layer0', 'block2_unit1_layer1', 'block2_unit1_layer2', 
+                                            'block2_unit2_layer0', 'block2_unit2_layer1', 'block2_unit2_layer2',
+                                            'block2_unit3_layer0', 'block2_unit3_layer1', 'block2_unit3_layer2',
+                                            'block2_unit4_layer0', 'block2_unit4_layer1', 'block2_unit4_layer2', 
+                                            'block3_unit1_layer0', 'block3_unit1_layer1', 'block3_unit1_layer2',
+                                            'block3_unit2_layer0', 'block3_unit2_layer1', 'block3_unit2_layer2',
+                                            'block3_unit3_layer0', 'block3_unit3_layer1', 'block3_unit3_layer2',
+                                            'block3_unit4_layer0', 'block3_unit4_layer1', 'block3_unit4_layer2',
+                                            'block3_unit5_layer0', 'block3_unit5_layer1', 'block3_unit5_layer2',
+                                            'block3_unit6_layer0', 'block3_unit6_layer1', 'block3_unit6_layer2',
+                                            'block4_unit1_layer0', 'block4_unit1_layer1', 'block4_unit1_layer2',
+                                            'block4_unit2_layer0', 'block4_unit2_layer1', 'block4_unit2_layer2',
+                                            'block4_unit3_layer0', 'block4_unit3_layer1', 'block4_unit3_layer2',
+                                            'pre_logits', 'logits'] 
+    """
     def __init__(
         self,
         block: Type[Union[BasicBlock, Bottleneck]],
