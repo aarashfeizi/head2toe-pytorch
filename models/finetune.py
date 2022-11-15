@@ -322,6 +322,10 @@ class FineTune(nn.Module):
         utils.make_dirs(emb_path)
         train_emb_path = os.path.join(emb_path, 'train.pkl')
         val_emb_path = os.path.join(emb_path, 'val.pkl')
+
+        if self.use_cuda:
+            self.cuda()
+
         if self.use_cache and os.path.exists(train_emb_path) and selected_feature_indices is None:
             train_emb_dataset = self._load_dataset(train_emb_path)
         else:
@@ -362,9 +366,6 @@ class FineTune(nn.Module):
             print('Validation set new size:', len(val_emb_dataset))
             train_embedding_dl = DataLoader(train_emb_dataset, shuffle=True, batch_size=self.train_batch_size)
             val_embedding_dl = DataLoader(val_emb_dataset, shuffle=True, batch_size=self.val_batch_size)
-            
-        if self.use_cuda:
-            self.cuda()
 
         return self._train_classifier(train_embedding_dl, val_embedding_dl)
 
