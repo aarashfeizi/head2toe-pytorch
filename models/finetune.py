@@ -67,6 +67,7 @@ class FineTune(nn.Module):
         self.classification_layer = None
         self.feature_importance = []
         self.output_size = -1 # will be set in _prepare_fc()
+        self.total_output_size = -1
         self.classification_layer = None
 
         self.optimizer_name = args.optimizer
@@ -92,6 +93,8 @@ class FineTune(nn.Module):
             for o in out:
                 self.output_size += o.shape[-1]
                 self.embedding_sizes.append(o.shape[-1])
+
+            self.total_output_size = self.output_size
         else:
             self.output_size = 0
             self.embedding_sizes = []
@@ -312,7 +315,8 @@ class FineTune(nn.Module):
 
     def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None):
         self._prepare_fc(selected_feature_indices)
-        emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_{self.backbone_mode}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.output_size}')
+        assert self.total_output_size != -1
+        emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_{self.backbone_mode}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.total_output_size}')
         utils.make_dirs(emb_path)
         train_emb_path = os.path.join(emb_path, 'train.pkl')
         val_emb_path = os.path.join(emb_path, 'val.pkl')
