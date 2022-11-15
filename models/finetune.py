@@ -318,21 +318,26 @@ class FineTune(nn.Module):
         assert self.total_output_size != -1
         emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_{self.backbone_mode}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.total_output_size}')
         utils.make_dirs(emb_path)
-        train_emb_path = os.path.join(emb_path, 'train.pkl')
-        val_emb_path = os.path.join(emb_path, 'val.pkl')
+        train_emb_path = os.path.join(emb_path, 'train_emb.npy')
+        train_lbls_path = os.path.join(emb_path, 'train_lbls.npy')
+        val_emb_path = os.path.join(emb_path, 'val_emb.npy')
+        val_lbls_path = os.path.join(emb_path, 'val_lbls.npy')
 
         if self.use_cuda:
             self.cuda()
 
         if self.use_cache and os.path.exists(train_emb_path):
             print(f'Using cache.... {train_emb_path}')
-            train_emb_dataset = self._load_dataset(train_emb_path)
-            train_embeddings = torch.tensor(list(list(zip(*train_emb_dataset))[0]))
-            train_labels = torch.tensor(list(list(zip(*train_emb_dataset))[1]))
+            print(f'Using cache.... {train_lbls_path}')
+            train_embeddings = self._load_dataset_npy(train_emb_path)
+            train_labels = self._load_dataset_npy(train_lbls_path)
+            train_embeddings = torch.tensor(train_embeddings)
+            train_labels = torch.tensor(train_labels)
         else:
             train_embeddings, train_labels = self._get_embedding(train_loader)
             if self.use_cache:
-                self._save_dataset(list(zip(train_embeddings.numpy(), train_labels.numpy())))
+                self._save_dataset_npy(train_embeddings.numpy(), train_emb_path)
+                self._save_dataset_npy(train_labels.numpy(), train_lbls_path)
 
         train_embeddings = self._process_embeddings(embeddings=train_embeddings,
                                                     selected_features=selected_feature_indices,
@@ -346,14 +351,17 @@ class FineTune(nn.Module):
         if val_loader is not None: # this is for testing, i.e. test split
             if self.use_cache and os.path.exists(val_emb_path):
                 print(f'Using cache.... {val_emb_path}')
-                val_emb_dataset = self._load_dataset(val_emb_path)
-                val_embeddings = torch.tensor(list(list(zip(*val_emb_dataset))[0]))
-                val_labels = torch.tensor(list(list(zip(*val_emb_dataset))[1]))                
+                print(f'Using cache.... {val_lbls_path}')
+                val_embeddings = self._load_dataset_npy(val_emb_path)
+                val_labels = self._load_dataset_npy(val_lbls_path)                
+                val_embeddings = torch.tensor(val_embeddings)
+                val_labels = torch.tensor(val_labels) 
             else:
                 val_embeddings, val_labels = self._get_embedding(val_loader)
 
                 if self.use_cache:
-                    self._save_dataset(list(zip(val_embeddings.numpy(), val_labels.numpy())))
+                    self._save_dataset_npy(val_embeddings.numpy(), val_emb_path)
+                    self._save_dataset_npy(val_labels.numpy(), val_lbls_path)
 
                 val_embeddings = self._process_embeddings(embeddings=val_embeddings,
                                                             selected_features=selected_feature_indices,
@@ -394,3 +402,10 @@ class FineTune(nn.Module):
     def _save_dataset(self, data, data_path):
         with open(data_path, 'wb') as f:
             pickle.dump(data, f)
+
+    def _save_dataset_npy(self, data, data_path):
+        np.save(data_path, data)
+    
+    def _load_dataset_npy(self, data_path):
+        data = np.load(data_path)
+        return data
