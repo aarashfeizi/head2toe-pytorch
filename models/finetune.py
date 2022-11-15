@@ -325,6 +325,7 @@ class FineTune(nn.Module):
             self.cuda()
 
         if self.use_cache and os.path.exists(train_emb_path):
+            print(f'Using cache.... {train_emb_path}')
             train_emb_dataset = self._load_dataset(train_emb_path)
             train_embeddings = torch.tensor(list(list(zip(*train_emb_dataset))[0]))
             train_labels = torch.tensor(list(list(zip(*train_emb_dataset))[1]))
@@ -344,6 +345,7 @@ class FineTune(nn.Module):
 
         if val_loader is not None: # this is for testing, i.e. test split
             if self.use_cache and os.path.exists(val_emb_path):
+                print(f'Using cache.... {val_emb_path}')
                 val_emb_dataset = self._load_dataset(val_emb_path)
                 val_embeddings = torch.tensor(list(list(zip(*val_emb_dataset))[0]))
                 val_labels = torch.tensor(list(list(zip(*val_emb_dataset))[1]))                
