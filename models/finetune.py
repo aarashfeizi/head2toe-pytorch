@@ -320,35 +320,44 @@ class FineTune(nn.Module):
         if self.use_cuda:
             self.cuda()
 
-        if self.use_cache and os.path.exists(train_emb_path) and selected_feature_indices is None:
+        if self.use_cache and os.path.exists(train_emb_path):
             train_emb_dataset = self._load_dataset(train_emb_path)
+            train_embeddings = torch.tensor(list(list(zip(*train_emb_dataset))[0]))
+            train_labels = torch.tensor(list(list(zip(*train_emb_dataset))[1]))
         else:
             train_embeddings, train_labels = self._get_embedding(train_loader)
-            train_embeddings = self._process_embeddings(embeddings=train_embeddings,
-                                                        selected_features=selected_feature_indices,
-                                                        normalization=self.emb_normalization) 
-            train_emb_dataset = list(zip(train_embeddings.numpy(), train_labels.numpy()))
-
             if self.use_cache:
-                self._save_dataset(train_emb_dataset, train_emb_path)
+                self._save_dataset(list(zip(train_embeddings.numpy(), train_labels.numpy())))
+
+        train_embeddings = self._process_embeddings(embeddings=train_embeddings,
+                                                    selected_features=selected_feature_indices,
+                                                    normalization=self.emb_normalization) 
+        train_emb_dataset = list(zip(train_embeddings.numpy(), train_labels.numpy()))
+
+
         
         train_embedding_dl = DataLoader(train_emb_dataset, shuffle=True, batch_size=self.train_batch_size)
 
-        if val_loader is not None:
+        if val_loader is not None: # this is for testing, i.e. test split
             if self.use_cache and os.path.exists(val_emb_path):
                 val_emb_dataset = self._load_dataset(val_emb_path)
+                val_embeddings = torch.tensor(list(list(zip(*val_emb_dataset))[0]))
+                val_labels = torch.tensor(list(list(zip(*val_emb_dataset))[1]))                
             else:
                 val_embeddings, val_labels = self._get_embedding(val_loader)
+
+                if self.use_cache:
+                    self._save_dataset(list(zip(val_embeddings.numpy(), val_labels.numpy())))
+
                 val_embeddings = self._process_embeddings(embeddings=val_embeddings,
                                                             selected_features=selected_feature_indices,
                                                             normalization=self.emb_normalization)   
                 val_emb_dataset = list(zip(val_embeddings.numpy(), val_labels.numpy()))
 
-                if self.use_cache:
-                    self._save_dataset(val_emb_dataset, val_emb_path)
+
                     
             val_embedding_dl = DataLoader(val_emb_dataset, shuffle=True, batch_size=self.val_batch_size)
-        else:
+        else: # i.e. val split
             assert self.train_to_val_ratio_split != 0
             tr_x = np.array(list(list(zip(*train_emb_dataset))[0]))
             tr_y = np.array(list(list(zip(*train_emb_dataset))[1]))
