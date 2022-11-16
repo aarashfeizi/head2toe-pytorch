@@ -313,7 +313,8 @@ class FineTune(nn.Module):
             print('train_acc: ', train_acc)
             val_acc, val_loss = self.eval_step(epoch=epoch, data_loader=val_data_loader)
             if val_acc >= best_val_acc:
-                self.update_feature_importance()
+                if self.gl_coeff > 0:
+                    self.update_feature_importance()
                 best_val_acc = val_acc
                 self.tol_count  = 0
             else:

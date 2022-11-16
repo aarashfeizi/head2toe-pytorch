@@ -97,9 +97,11 @@ class FineTune_FS(finetune.FineTune):
         selected_features, mean_scores = self._select_features(train_loader=train_loader, val_loader=None) # choose with cross validating
 
         self.gl_coeff = 0 # for final finetuning, no regularizer
+
+        feature_importance = self.update_feature_importance()
         final_val_acc = self.optimize_finetune(train_loader=train_loader, 
                                 val_loader=val_loader,
                                 selected_feature_indices=selected_features)
 
         print('Final validation acc:', final_val_acc)
-        
+        return feature_importance

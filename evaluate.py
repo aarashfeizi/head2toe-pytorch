@@ -34,11 +34,12 @@ def main():
         val_data = None
 
 
-    model.evaluate(train_loader=train_data,
+    f_importance_1 = model.evaluate(train_loader=train_data,
                             val_loader=val_data)
     
-    f_importance = model.get_feature_importance()
-    utils.save_np(f_importance, save_path)    
+    f_importance_2 = model.get_feature_importance()
+    
+    utils.save_np(f_importance_1, save_path)    
 
 
     # import pdb
