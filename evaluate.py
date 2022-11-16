@@ -14,7 +14,7 @@ def main():
         r = wandb.run
         time = str(r.start_time)
         time = time[:time.find('.')]
-        save_path = os.path.join(save_path, f'{r.id}, {r.name}_{time}')
+        save_path = os.path.join(save_path, f'{r.sweep_id}', f'{r.name}_{time}')
         utils.make_dirs(save_path)
     
 
