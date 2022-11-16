@@ -406,8 +406,9 @@ class FineTune(nn.Module):
         final_val_acc = self.optimize_finetune(train_loader=train_loader, 
                                 val_loader=val_loader,
                                 selected_feature_indices=None)
-
+        f_importance = self.get_feature_importance()
         print('Final validation acc:', final_val_acc)
+        return f_importance
 
     def _load_dataset(self, data_path):
         with open(data_path, 'rb') as f:
