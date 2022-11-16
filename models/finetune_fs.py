@@ -98,7 +98,7 @@ class FineTune_FS(finetune.FineTune):
 
         self.gl_coeff = 0 # for final finetuning, no regularizer
 
-        feature_importance = self.update_feature_importance()
+        feature_importance = self.get_feature_importance()
         final_val_acc = self.optimize_finetune(train_loader=train_loader, 
                                 val_loader=val_loader,
                                 selected_feature_indices=selected_features)
