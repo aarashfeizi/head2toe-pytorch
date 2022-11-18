@@ -131,7 +131,7 @@ def flatten_and_concat(output_dict, pool_size=0, target_size=0,
           pool_size = width // n_patches_per_row
       if pool_size > 0:
         output = nn.AvgPool2d(
-            kernel_size=pool_size, stride=pool_size)(output)
+            kernel_size=pool_size, stride=pool_size, ceil_mode=True)(output)
         all_features.append(nn.Flatten()(output))
       else:
         # Global pool

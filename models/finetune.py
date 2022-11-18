@@ -123,7 +123,6 @@ class FineTune(nn.Module):
             self.layers_to_use = sorted(self.layers_to_use)
             final_output = {l_n: output[l_n] for l_n in self.layers_to_use}
             return final_output
-                
 
     def _get_embedding(self, dataloader):
         self.backbone.eval()

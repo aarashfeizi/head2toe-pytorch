@@ -3,8 +3,12 @@ from .cifar import CIFAR100, CIFAR10
 
 DATASETS = {'cifar10': CIFAR10,
             'cifar100': CIFAR100,
-            'caltech101': tdatasets.Caltech101,
-            'svhn': tdatasets.SVHN}
+            'caltech101': Caltech101,
+            'svhn': SVHN,
+            'flowers102': Flowers102,
+            'kitti': Kitti,
+            'dtd': DTD,
+            }
 
 
 def get_dataset(args, transform=None, mode='train'): 
