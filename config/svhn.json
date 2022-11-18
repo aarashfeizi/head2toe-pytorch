@@ -1,0 +1,50 @@
+{   
+    "loss_gl_coeff": 1,
+    "lr": 1e-3,
+    "emb_normalization": "unit_vector",
+    "target_size": 512,
+    "select_features": false,
+    "fraction": 0.1,
+    "fraction_offset": 0,
+    "mean_interpolation_coef": 0,
+    "average_over_k": 1,
+    "test": false,
+    "layers_to_use": "all",
+    
+    "cuda": true,
+    "seed": 402, 
+    "gpu_ids": 0,
+    "log_path": "../../scratch/head2toe-pytorch/logs/",
+    "ssl_backbone_path": "../../scratch/head2toe-pytorch/ssl_backbones",
+    "num_workers": 10,
+    "epochs": 10,
+    "batch_size": 256,
+    "train_batch_size": 128,
+    "val_batch_size": 256,
+    "wandb": false,
+    "es_tol": 10,
+
+    "data_use_cache": true,
+    "dataset": "svhn",
+    "dataset_path": "/network/datasets/svhn",
+    "nb_classes": 10,
+    "img_size": 224,
+    "train_to_val_ratio_split": 0.8,
+    
+    "normalize_param": {
+      "mean": [0.4914, 0.4822, 0.4465],
+      "std": [0.247, 0.243, 0.261]
+    },
+
+    "color_jitter_param": {
+      "brightness": 0.5,
+      "hue": 0.5,
+      "contrast": 0.5,
+      "saturation": 0.5
+    },
+
+    "finetune_backbone": false,
+    "loss_gl_p": 1,
+    "loss_gl_r": 2,
+    "optimizer": "adam"
+}

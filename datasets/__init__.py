@@ -1,5 +1,10 @@
 import torchvision.datasets as tdatasets
 from .cifar import CIFAR100, CIFAR10
+from .eurosat import EuroSAT
+from .flowers102 import Flowers102
+from .dtd import DTD
+from .caltech101 import Caltech101
+from .svhn import SVHN
 
 DATASETS = {'cifar10': CIFAR10,
             'cifar100': CIFAR100,
