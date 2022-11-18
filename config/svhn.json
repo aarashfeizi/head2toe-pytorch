@@ -2,7 +2,7 @@
     "loss_gl_coeff": 1,
     "lr": 1e-3,
     "emb_normalization": "unit_vector",
-    "target_size": 512,
+    "target_size": 24576,
     "select_features": false,
     "fraction": 0.1,
     "fraction_offset": 0,
