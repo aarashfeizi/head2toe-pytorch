@@ -11,7 +11,7 @@ DATASETS = {'cifar10': CIFAR10,
             'caltech101': Caltech101,
             'svhn': SVHN,
             'flowers102': Flowers102,
-            'kitti': Kitti,
+            # 'kitti': Kitti,
             'dtd': DTD,
             }
 
@@ -28,8 +28,6 @@ def get_dataset(args, transform=None, mode='train'):
     elif dataset_name == 'caltech101':
         d = DATASETS[dataset_name](root=dataset_root, transform=transform)
     elif dataset_name == 'svhn':
-        if mode != 'train':
-            mode = 'test'
         d = DATASETS[dataset_name](root=dataset_root, split=mode, transform=transform)
 
     return d
