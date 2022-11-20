@@ -136,16 +136,18 @@ class FineTune(nn.Module):
                 out = self.backbone(x)
                 out = self._choose_layers(out)
                 batch_embedding_lists.append(utils.flatten_and_concat(output_dict=out, 
-                                                target_size=self.target_size)) # should I detach?
-                labels.append(l)
+                                                target_size=self.target_size).numpy()) # should I detach?
+                labels.append(l.numpy())
 
                 t.update()
             
-        labels = torch.concat(labels)
+        # labels = torch.concat(labels)
+        labels = np.concatenate(labels)
         output_embeddings = []
         for i in range(len(batch_embedding_lists[0])):
             embedding_i = [batch[i] for batch in batch_embedding_lists]
-            output_embeddings.append(torch.concat(embedding_i, dim=0))
+            # output_embeddings.append(torch.concat(embedding_i, dim=0))
+            output_embeddings.append(np.concatenate(embedding_i, dim=0))
 
         return output_embeddings, labels
 
@@ -345,15 +347,16 @@ class FineTune(nn.Module):
             print(f'Using cache.... {train_lbls_path}')
             train_embeddings = self._load_dataset(train_emb_path)
             train_labels = self._load_dataset_npy(train_lbls_path)
-            train_embeddings = [torch.tensor(t) for t in train_embeddings]
-            train_labels = torch.tensor(train_labels)
         else:
             train_embeddings, train_labels = self._get_embedding(train_loader)
             if self.use_cache:
-                to_save = [t.numpy() for t in train_embeddings]
-                self._save_dataset(to_save, train_emb_path)
-                self._save_dataset_npy(train_labels.numpy(), train_lbls_path)
+                # to_save = [t.numpy() for t in train_embeddings]
+                self._save_dataset(train_embeddings, train_emb_path)
+                # self._save_dataset_npy(train_labels.numpy(), train_lbls_path)
+                self._save_dataset_npy(train_labels, train_lbls_path)
 
+        train_embeddings = [torch.tensor(t) for t in train_embeddings]
+        train_labels = torch.tensor(train_labels)
         train_embeddings = self._process_embeddings(embeddings=train_embeddings,
                                                     selected_features=selected_feature_indices,
                                                     normalization=self.emb_normalization) 
@@ -369,16 +372,17 @@ class FineTune(nn.Module):
                 print(f'Using cache.... {val_lbls_path}')
                 val_embeddings = self._load_dataset(val_emb_path)
                 val_labels = self._load_dataset_npy(val_lbls_path)
-                val_embeddings = [torch.tensor(t) for t in val_embeddings]
-                val_labels = torch.tensor(val_labels) 
+ 
             else:
                 val_embeddings, val_labels = self._get_embedding(val_loader)
 
                 if self.use_cache:
-                    to_save = [t.numpy() for t in val_embeddings]
-                    self._save_dataset(to_save, val_emb_path)
-                    self._save_dataset_npy(val_labels.numpy(), val_lbls_path)
+                    # to_save = [t.numpy() for t in val_embeddings]
+                    self._save_dataset(val_embeddings, val_emb_path)
+                    self._save_dataset_npy(val_labels, val_lbls_path)
 
+            val_embeddings = [torch.tensor(t) for t in val_embeddings]
+            val_labels = torch.tensor(val_labels)
             val_embeddings = self._process_embeddings(embeddings=val_embeddings,
                                                         selected_features=selected_feature_indices,
                                                         normalization=self.emb_normalization)   
