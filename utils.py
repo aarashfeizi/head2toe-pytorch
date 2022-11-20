@@ -171,7 +171,6 @@ def flatten_and_concat(output_dict, pool_size=0, target_size=0,
       raise ValueError(
           f'Output tensor: {k} with shape {output.shape} not 2D or 4D.')
 
-  all_features = [feat.numpy() for feat in all_features]
   return all_features
 
 
