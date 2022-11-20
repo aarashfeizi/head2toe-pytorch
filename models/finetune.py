@@ -136,7 +136,7 @@ class FineTune(nn.Module):
                 out = self.backbone(x)
                 out = self._choose_layers(out)
                 batch_embedding_lists.append(utils.flatten_and_concat(output_dict=out, 
-                                                target_size=self.target_size).numpy()) # should I detach?
+                                                target_size=self.target_size)) # should I detach?
                 labels.append(l.numpy())
 
                 t.update()
