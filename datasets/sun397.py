@@ -10,7 +10,7 @@ class SUN397(tSUN397):
         super(SUN397, self).__init__(root, split,
                     transform,
                     target_transform,
-                    download)
+                    download=True)
         if split == 'train':
             self._image_files = self._image_files[:1000]
             self._labels = self._labels[:1000]

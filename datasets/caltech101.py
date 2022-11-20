@@ -14,7 +14,7 @@ class Caltech101(tCaltech101):
                     target_type,
                     transform,
                     target_transform,
-                    download)
+                    download=True)
                     
         self.index = self.index[:1000]
         self.y = self.y[:1000]

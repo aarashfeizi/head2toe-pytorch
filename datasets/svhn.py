@@ -10,7 +10,7 @@ class SVHN(tSVHN):
         super(SVHN, self).__init__(root, split,
                     transform,
                     target_transform,
-                    download)
+                    download=True)
         if split == 'train':
             self.data = self.data[:1000]
             self.labels = self.labels[:1000]

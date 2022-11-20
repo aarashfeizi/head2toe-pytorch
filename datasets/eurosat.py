@@ -12,5 +12,5 @@ class EuroSAT(tEuroSAT):
         super(EuroSAT, self).__init__(root,
                     transform,
                     target_transform,
-                    download)
+                    download=True)
         self.samples = self.samples[:1000]
