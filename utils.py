@@ -15,7 +15,8 @@ import random
 wandb_dict = {}
 
 def init_wandb(args):
-    wandb.init(config=args, dir=os.path.join(args.log_path, 'wandb/'))
+    mode = 'online' if args.wandb_online else 'offline'
+    wandb.init(config=args, dir=os.path.join(args.log_path, 'wandb/'), mode=mode)
     args = wandb.config
     return args
 
