@@ -5,12 +5,14 @@ from .flowers102 import Flowers102
 from .dtd import DTD
 from .caltech101 import Caltech101
 from .svhn import SVHN
+from .rhotelid import RHotelID
 
 DATASETS = {'cifar10': CIFAR10,
             'cifar100': CIFAR100,
             'caltech101': Caltech101,
             'svhn': SVHN,
             'flowers102': Flowers102,
+            'rhotelid': RHotelID,
             # 'kitti': Kitti,
             'dtd': DTD,
             }
