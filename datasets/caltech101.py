@@ -27,7 +27,7 @@ class Caltech101(tCaltech101):
             self.y = self.y[:1000]
 
 
-    def __getitem__(self, index: int) -> Tuple[Any, Any]:
+    def __getitem__(self, index: int):
         """
         Args:
             index (int): Index
