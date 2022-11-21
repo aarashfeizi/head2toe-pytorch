@@ -162,6 +162,7 @@ class RHotelID(ImageFolder):
         
         if split == 'train':
             self.imgs = self.samples[:5000]
+            self.samples = self.samples[:5000]
         else:
             self.imgs = self.samples
             
