@@ -160,8 +160,11 @@ class RHotelID(ImageFolder):
             self.samples = samples
             self.targets = [s[1] for s in samples]
         
-        self.imgs = self.samples
-
+        if split == 'train':
+            self.imgs = self.samples[:5000]
+        else:
+            self.imgs = self.samples
+            
         self.loader = loader
         self.extensions = extensions
 
