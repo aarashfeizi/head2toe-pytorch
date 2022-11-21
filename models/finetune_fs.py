@@ -104,4 +104,6 @@ class FineTune_FS(finetune.FineTune):
                                 selected_feature_indices=selected_features)
 
         print('Final validation acc:', final_val_acc)
+        utils.wandb_update_value({'val/acc': final_val_acc})
+        utils.wandb_log()
         return feature_importance

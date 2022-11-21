@@ -407,6 +407,8 @@ class FineTune(nn.Module):
                                 selected_feature_indices=None)
         f_importance = self.get_feature_importance()
         print('Final validation acc:', final_val_acc)
+        utils.wandb_update_value({'val/acc': final_val_acc})
+        utils.wandb_log()
         return f_importance
 
     def _load_dataset(self, data_path):
