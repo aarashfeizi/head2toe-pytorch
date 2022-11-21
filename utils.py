@@ -174,7 +174,7 @@ def flatten_and_concat(output_dict, pool_size=0, target_size=0,
   return all_features
 
 
-def get_dataset(args, mode='train'):
+def get_dataset(args, mode='train', extra_args={}):
     if mode == 'train':
         transform = transforms.Compose([
                                         # transforms.RandomResizedCrop(size=args.img_size),
@@ -189,7 +189,7 @@ def get_dataset(args, mode='train'):
                                         transforms.ToTensor(),
                                         transforms.Normalize(mean=args.normalize_param['mean'], std=args.normalize_param['std'])])
 
-    data = DataLoader(dataset=datasets.get_dataset(args, transform=transform, mode=mode),
+    data = DataLoader(dataset=datasets.get_dataset(args, transform=transform, mode=mode, extra_args=extra_args),
                         batch_size=args.batch_size,
                         shuffle=False,
                         num_workers=args.num_workers,

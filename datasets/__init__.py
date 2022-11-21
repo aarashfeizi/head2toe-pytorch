@@ -16,7 +16,7 @@ DATASETS = {'cifar10': CIFAR10,
             }
 
 
-def get_dataset(args, transform=None, mode='train'): 
+def get_dataset(args, transform=None, mode='train', extra_args={}): 
     """
         args: 
         mode: train or test
@@ -26,8 +26,10 @@ def get_dataset(args, transform=None, mode='train'):
     if "cifar" in dataset_name:
         d = DATASETS[dataset_name](root=dataset_root, train=(mode == 'train'), transform=transform)
     elif dataset_name == 'caltech101':
-        d = DATASETS[dataset_name](root=dataset_root, transform=transform)
+        d = DATASETS[dataset_name](root=dataset_root, split=mode, transform=transform, split_path=args.dataset_splits)
     elif dataset_name == 'svhn':
         d = DATASETS[dataset_name](root=dataset_root, split=mode, transform=transform)
+    elif dataset_name == 'rhotelid':
+        d = DATASETS[dataset_name](root=dataset_root, split=mode, transform=transform, **extra_args)
 
     return d
