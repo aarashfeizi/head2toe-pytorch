@@ -5,8 +5,6 @@ class SVHN(tSVHN):
                     transform=None,
                     target_transform=None,
                     download=False):
-        if split != 'train':
-            split = 'test'
         super(SVHN, self).__init__(root, split,
                     transform,
                     target_transform,
