@@ -28,7 +28,7 @@
     "data_use_cache": true,
     "dataset": "caltech101",
     "dataset_path": "/network/datasets/caltech101.var/caltech101_torchvision",
-    "dataset_splits": "scratch/caltech101/",
+    "dataset_splits": "../../scratch/caltech101/",
     "nb_classes": 101,
     "img_size": 224,
     "train_to_val_ratio_split": 0.8,
