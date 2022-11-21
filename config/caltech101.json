@@ -21,7 +21,8 @@
     "batch_size": 256,
     "train_batch_size": 128,
     "val_batch_size": 256,
-    "wandb": false,
+    "wandb": true,
+    "wandb_online": true,
     "es_tol": 50,
 
     "data_use_cache": true,
