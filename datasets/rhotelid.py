@@ -153,16 +153,17 @@ class RHotelID(ImageFolder):
         
         extensions = IMG_EXTENSIONS if is_valid_file is None else None
         
-        samples = self.make_dataset(self.root, class_to_idx, extensions, is_valid_file)
+        if class_to_idx is not None:
+            samples = self.make_dataset(self.root, class_to_idx, extensions, is_valid_file)
+            self.classes = classes
+            self.class_to_idx = class_to_idx
+            self.samples = samples
+            self.targets = [s[1] for s in samples]
+        
+        self.imgs = self.samples
 
         self.loader = loader
         self.extensions = extensions
-
-        self.classes = classes
-        self.class_to_idx = class_to_idx
-        self.samples = samples
-        self.targets = [s[1] for s in samples]
-        self.imgs = self.samples
 
     @staticmethod
     def make_dataset(
