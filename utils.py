@@ -175,19 +175,19 @@ def flatten_and_concat(output_dict, pool_size=0, target_size=0,
 
 
 def get_dataset(args, mode='train', extra_args={}):
-    if mode == 'train':
-        transform = transforms.Compose([
-                                        # transforms.RandomResizedCrop(size=args.img_size),
-                                        # transforms.RandomHorizontalFlip(p=0.5),
-                                        # transforms.ColorJitter(),
-                                        transforms.Resize(size=int(args.img_size)),
-                                        transforms.ToTensor(),
-                                        transforms.Normalize(mean=args.normalize_param['mean'], std=args.normalize_param['std'])])
-    else:
-        transform = transforms.Compose([transforms.Resize(size=int(args.img_size * 1.15)),
-                                        transforms.CenterCrop(size=args.img_size),
-                                        transforms.ToTensor(),
-                                        transforms.Normalize(mean=args.normalize_param['mean'], std=args.normalize_param['std'])])
+    # if mode == 'train':
+    transform = transforms.Compose([
+                                    # transforms.RandomResizedCrop(size=args.img_size),
+                                    # transforms.RandomHorizontalFlip(p=0.5),
+                                    # transforms.ColorJitter(),
+                                    transforms.Resize(size=int(args.img_size, args.img_size)),
+                                    transforms.ToTensor(),
+                                    transforms.Normalize(mean=args.normalize_param['mean'], std=args.normalize_param['std'])])
+    # else:
+    #     transform = transforms.Compose([transforms.Resize(size=int(args.img_size * 1.15, args.img_size * 1.15)),
+    #                                     transforms.CenterCrop(size=args.img_size),
+    #                                     transforms.ToTensor(),
+    #                                     transforms.Normalize(mean=args.normalize_param['mean'], std=args.normalize_param['std'])])
 
     data = DataLoader(dataset=datasets.get_dataset(args, transform=transform, mode=mode, extra_args=extra_args),
                         batch_size=args.batch_size,
