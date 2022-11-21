@@ -180,7 +180,7 @@ def get_dataset(args, mode='train', extra_args={}):
                                     # transforms.RandomResizedCrop(size=args.img_size),
                                     # transforms.RandomHorizontalFlip(p=0.5),
                                     # transforms.ColorJitter(),
-                                    transforms.Resize(size=int(args.img_size, args.img_size)),
+                                    transforms.Resize(size=(args.img_size, args.img_size)),
                                     transforms.ToTensor(),
                                     transforms.Normalize(mean=args.normalize_param['mean'], std=args.normalize_param['std'])])
     # else:
