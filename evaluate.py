@@ -32,8 +32,8 @@ def main():
         if args.dataset != 'rhotelid':
             val_data = utils.get_dataset(args=args, mode='test')
         else:
-            val_data = utils.get_dataset(args=args, mode='test', extra_args={'classes': train_data.classes,
-                                                                'class_to_idx': train_data.class_to_idx})
+            val_data = utils.get_dataset(args=args, mode='test', extra_args={'classes': train_data.dataset.classes,
+                                                                'class_to_idx': train_data.dataset.class_to_idx})
     else:
         val_data = None
 
