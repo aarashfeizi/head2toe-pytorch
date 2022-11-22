@@ -11,6 +11,7 @@ import json
 import os
 import wandb
 import random
+import input_pipeline
 
 wandb_dict = {}
 
@@ -172,6 +173,32 @@ def flatten_and_concat(output_dict, pool_size=0, target_size=0,
           f'Output tensor: {k} with shape {output.shape} not 2D or 4D.')
 
   return all_features
+
+def _convert_tf_datset_to_np(tf_data):
+  from einops import rearrange
+  ys = []
+  xs = []
+  for x, y in tf_data:
+    x = x.numpy()
+    y = y.numpy()
+    x = rearrange(x, 'b h w c -> b c h w')
+    ys.append(y)
+    xs.append(x)
+
+
+def get_dataset_tf(args, mode='train', eval_mode='test'):
+  """
+    mode: ['train', 'eval']
+    eval_mode: ['valid', 'test']
+  """
+  data_source = args.dataset
+  image_size = args.img_size
+  batch_size = args.batch_size
+  tf_dataset = input_pipeline.create_vtab_dataset(
+                        dataset=data_source, mode=mode, image_size=image_size,
+                        batch_size=batch_size, eval_mode=eval_mode)
+            
+  np_dataset = _convert_tf_datset_to_np(tf_dataset)
 
 
 def get_dataset(args, mode='train', extra_args={}):

@@ -27,7 +27,9 @@ def main():
     else:
         model = finetune.FineTune(args=args, backbone='resnet50')
 
-    train_data = utils.get_dataset(args=args, mode='train')
+    # train_data = utils.get_dataset(args=args, mode='train')
+    args.dataset = 'data.caltech101'
+    train_data = utils.get_dataset_tf(args, mode='train', eval_mode='test')
     if args.test:
         if args.dataset != 'rhotelid':
             val_data = utils.get_dataset(args=args, mode='test')
