@@ -11,7 +11,6 @@ import json
 import os
 import wandb
 import random
-import input_pipeline
 import pickle
 
 wandb_dict = {}
@@ -259,6 +258,7 @@ def get_dataset_tf(args, mode='train', eval_mode='test'):
   dataset_cache_path = os.path.join(args.log_path, 'cache/dataset/', args.dataset, f'{args.dataset}_{mode}_{eval_mode}.pkl')
   print(f'Loading {data_source}_{mode}_{eval_mode}')
   if not os.path.exists(dataset_cache_path):
+    import input_pipeline
     tf_dataset = input_pipeline.create_vtab_dataset(
                           dataset=data_source, mode=mode, image_size=image_size,
                           batch_size=batch_size, eval_mode=eval_mode)
