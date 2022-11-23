@@ -89,6 +89,26 @@ VTAB_DATASETS = {"caltech" : 'data.caltech101', \
                  "clevr_all" : 'data.clevr(task="count_all")', \
                  "retino" : 'data.diabetic_retinopathy(config="btgraham-300")'}
 
+VTAB_TARGET_SIZES = {"caltech" : 8192, \
+                      "cifar100" : 512, \
+                      "dtd" : 24576, \
+                      "flower102" : 512, \
+                      "pet" : 8192, \
+                      "camelyon" : 512, \
+                      "sun397" : 512, \
+                      "svhn" : 24576, \
+                      "resics45" : 8192, \
+                      "eurosat" : 512, \
+                      "dmlab" : 8192, \
+                      "kitti" : 8192, \
+                      "norb_azimuth" : 24576, \
+                      "norb_elevation" : 8192, \
+                      "dsprites_x" : 8192, \
+                      "dsprites_orient" : 512, \
+                      "clevr_dist" : 8192, \
+                      "clevr_all" : 512, \
+                      "retino" : 8192}
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_file', default='config/cifar100.json', type=str, help='Path to config file')
@@ -119,6 +139,7 @@ def get_args():
       raise Exception('Either dataset should be set or vtab_dataset')
     elif cfg_dict['dataset'] == '':
       cfg_dict['dataset'] = cfg_dict['vtab_dataset']
+      cfg_dict['target_size'] = VTAB_TARGET_SIZES[cfg_dict['vtab_dataset']]
       cfg_dict['vtab'] = True
     else:
       cfg_dict['vtab'] = False
