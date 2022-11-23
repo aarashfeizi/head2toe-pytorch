@@ -31,7 +31,7 @@ def main():
     if args.vtab:
         train_data = utils.get_dataset_tf(args, mode='train', eval_mode='test')
         val_data = utils.get_dataset_tf(args, mode='train', eval_mode='valid')
-        test_data = val_data = utils.get_dataset_tf(args, mode='eval', eval_mode='test')
+        test_data = utils.get_dataset_tf(args, mode='eval', eval_mode='test')
     else:
         train_data = utils.get_dataset(args=args, mode='train')
         val_data = None
@@ -49,7 +49,7 @@ def main():
 
     f_importance_1 = model.evaluate(train_loader=train_data,
                             val_loader=val_data,
-                            test_loader=test_data)
+                            test_loader=test)
     
     f_importance_2 = model.get_feature_importance()
     
