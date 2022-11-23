@@ -49,7 +49,7 @@ def main():
 
     f_importance_1 = model.evaluate(train_loader=train_data,
                             val_loader=val_data,
-                            test_loader=test)
+                            test_loader=test_data)
     
     f_importance_2 = model.get_feature_importance()
     
