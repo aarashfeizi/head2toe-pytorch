@@ -22,18 +22,15 @@ def main():
     print(args)
     utils.seed_all(args.seed, args.cuda)
 
-    if args.select_features:
-        model = finetune_fs.FineTune_FS(args=args, backbone='resnet50')
-    else:
-        model = finetune.FineTune(args=args, backbone='resnet50')
-
-
     if args.vtab:
         train_data = utils.get_dataset_tf(args, mode='train', eval_mode='valid')
         val_data = utils.get_dataset_tf(args, mode='eval', eval_mode='valid')
         trainval_data = utils.get_dataset_tf(args, mode='train', eval_mode='test')
         test_data = utils.get_dataset_tf(args, mode='eval', eval_mode='test')
+        nb_classes = utils.get_nb_classes(trainval_data)
+        print(f'class number: {nb_classes}')
     else:
+        nb_classes = None
         train_data = utils.get_dataset(args=args, mode='train')
         trainval_data = train_data
         val_data = None
@@ -45,8 +42,14 @@ def main():
                                                                     'class_to_idx': train_data.dataset.class_to_idx})
         else:
             test_data = None
+            
 
     
+    if args.select_features:
+        model = finetune_fs.FineTune_FS(args=args, backbone='resnet50', nb_classes=nb_classes)
+    else:
+        model = finetune.FineTune(args=args, backbone='resnet50', nb_classes=nb_classes)
+
     
 
     f_importance_1 = model.evaluate(train_loader=train_data,

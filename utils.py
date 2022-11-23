@@ -222,6 +222,10 @@ def _convert_tf_datset_to_np(tf_data):
 
   return list(zip(x, y))
 
+def get_nb_classes(loader):
+  _, y = list(zip(*loader.dataset))
+  return len(np.unique(y))
+
 def get_dataset_tf(args, mode='train', eval_mode='test'):
   """
     mode: ['train', 'eval']

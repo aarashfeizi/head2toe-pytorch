@@ -17,12 +17,14 @@ from sklearn.model_selection import train_test_split
 
 
 class FineTune(nn.Module):
-    def __init__(self, args, backbone):
+    def __init__(self, args, backbone, nb_classes=None):
         super(FineTune, self).__init__()
         self.use_cuda = args.cuda
 
         self.img_size = args.img_size
-        self.nb_classes = args.nb_classes
+        if args.nb_classes == 0:
+            assert nb_classes is not None
+            self.nb_classes = nb_classes
         self.using_wandb = args.wandb
 
         self.backbone_name = backbone

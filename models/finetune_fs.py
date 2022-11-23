@@ -19,8 +19,8 @@ from sklearn.model_selection import train_test_split
 
 class FineTune_FS(finetune.FineTune):
 
-    def __init__(self, args, backbone):
-        super(FineTune_FS, self).__init__(args, backbone)
+    def __init__(self, args, backbone, nb_classes=None):
+        super(FineTune_FS, self).__init__(args, backbone, nb_classes)
         self.keep_fraction = args.fraction
         self.keep_fraction_offset = args.fraction_offset
         self.mean_interpolation_coef = args.mean_interpolation_coef
