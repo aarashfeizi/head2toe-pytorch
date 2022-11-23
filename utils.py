@@ -12,6 +12,7 @@ import os
 import wandb
 import random
 import input_pipeline
+import pickle
 
 wandb_dict = {}
 
@@ -234,12 +235,18 @@ def get_dataset_tf(args, mode='train', eval_mode='test'):
   data_source = VTAB_DATASETS[args.dataset]
   image_size = args.img_size
   batch_size = args.batch_size
-  print(f'Loading {data_source}_{mode}_{eval_mode}')
-  tf_dataset = input_pipeline.create_vtab_dataset(
-                        dataset=data_source, mode=mode, image_size=image_size,
-                        batch_size=batch_size, eval_mode=eval_mode)
-            
-  np_dataset = _convert_tf_datset_to_np(tf_dataset)
+  dataset_cache_path = os.path.join(args.log_path, 'cache/dataset/', args.dataset, f'{data_source}_{mode}_{eval_mode}.pkl')
+  if not os.path.exists(dataset_cache_path):
+    print(f'Loading {data_source}_{mode}_{eval_mode}')
+    tf_dataset = input_pipeline.create_vtab_dataset(
+                          dataset=data_source, mode=mode, image_size=image_size,
+                          batch_size=batch_size, eval_mode=eval_mode)
+              
+    np_dataset = _convert_tf_datset_to_np(tf_dataset)
+    make_dirs(os.path.join(args.log_path, 'cache/dataset/', args.dataset))
+    save_dataset(np_dataset, dataset_cache_path)
+  else:
+    np_dataset = load_dataset(dataset_cache_path)
 
   data = DataLoader(np_dataset, batch_size=batch_size, num_workers=args.num_workers, pin_memory=True)
   return data
@@ -277,3 +284,21 @@ def make_dirs(path):
 
 def save_np(f_importance, save_path):
   np.save(os.path.join(save_path, 'feature_importance.npy'), f_importance)
+
+
+def load_dataset(data_path):
+    with open(data_path, 'rb') as f:
+        data = pickle.load(f)
+
+    return data
+
+def save_dataset(data, data_path):
+    with open(data_path, 'wb') as f:
+        pickle.dump(data, f)
+
+def save_dataset_npy(data, data_path):
+    np.save(data_path, data)
+
+def load_dataset_npy(data_path):
+    data = np.load(data_path)
+    return data
