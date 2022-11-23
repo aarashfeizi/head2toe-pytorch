@@ -68,6 +68,26 @@ BACKBONE_MODES = ['supervised',
                   'simclr',
                   'unigrad']
 
+VTAB_DATASETS = {"caltech" : 'data.caltech101', \
+                 "cifar100" : 'data.cifar(num_classes=100)', \
+                 "dtd" : 'data.dtd', \
+                 "flower102" : 'data.oxford_flowers102', \
+                 "pet" : 'data.oxford_iiit_pet', \
+                 "camelyon" : 'data.patch_camelyon', \
+                 "sun397" : 'data.sun397', \
+                 "svhn" : 'data.svhn', \
+                 "resics45" : 'data.resisc45', \
+                 "eurosat" : 'data.eurosat', \
+                 "dmlab" : 'data.dmlab', \
+                 "kitti" : 'data.kitti(task="closest_vehicle_distance")', \
+                 "norb_azimuth" : 'data.smallnorb(predicted_attribute="label_azimuth")', \
+                 "norb_elevation" : 'data.smallnorb(predicted_attribute="label_elevation")', \
+                 "dsprites_x" : 'data.dsprites(predicted_attribute="label_x_position",num_classes=16)', \
+                 "dsprites_orient" : 'data.dsprites(predicted_attribute="label_orientation",num_classes=16)', \
+                 "clevr_dist" : 'data.clevr(task="closest_object_distance")', \
+                 "clevr_all" : 'data.clevr(task="count_all")', \
+                 "retino" : 'data.diabetic_retinopathy(config="btgraham-300")'}
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_file', default='config/cifar100.json', type=str, help='Path to config file')
@@ -76,6 +96,7 @@ def get_args():
     parser.add_argument('--fraction', default=None, type=float, help='Learning rate')
     parser.add_argument('--loss_gl_coeff', default=None, type=float, help='Group Lasso coefficient')
     parser.add_argument('--backbone_mode', default='supervised', type=str, help='Path to config file', choices=BACKBONE_MODES)
+    parser.add_argument('--vtab_dataset', default=None, type=str, help='Path to config file', choices=list(VTAB_DATASETS.keys()))
 
 
     args = parser.parse_args()
@@ -91,6 +112,17 @@ def get_args():
     
     if args.loss_gl_coeff:
       cfg_dict['loss_gl_coeff'] = args.loss_gl_coeff  
+
+
+    if cfg_dict['dataset'] == '' and cfg_dict['vtab_dataset'] is None:
+      raise Exception('Either dataset should be set or vtab_dataset')
+    elif cfg_dict['dataset'] == '':
+      cfg_dict['dataset'] = cfg_dict['vtab_dataset']
+      cfg_dict['vtab'] = True
+    else:
+      cfg_dict['vtab'] = False
+
+
 
     args = argparse.Namespace(**cfg_dict)
 
@@ -185,13 +217,17 @@ def _convert_tf_datset_to_np(tf_data):
     ys.append(y)
     xs.append(x)
 
+  x = np.concatenate(xs)
+  y = np.concatenate(ys)
+
+  return list(zip(x, y))
 
 def get_dataset_tf(args, mode='train', eval_mode='test'):
   """
     mode: ['train', 'eval']
     eval_mode: ['valid', 'test']
   """
-  data_source = args.dataset
+  data_source = VTAB_DATASETS[args.dataset]
   image_size = args.img_size
   batch_size = args.batch_size
   tf_dataset = input_pipeline.create_vtab_dataset(
@@ -199,6 +235,9 @@ def get_dataset_tf(args, mode='train', eval_mode='test'):
                         batch_size=batch_size, eval_mode=eval_mode)
             
   np_dataset = _convert_tf_datset_to_np(tf_dataset)
+
+  data = DataLoader(np_dataset, batch_size=batch_size, num_workers=args.num_workers, pin_memory=True)
+  return data
 
 
 def get_dataset(args, mode='train', extra_args={}):

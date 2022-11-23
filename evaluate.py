@@ -27,21 +27,29 @@ def main():
     else:
         model = finetune.FineTune(args=args, backbone='resnet50')
 
-    # train_data = utils.get_dataset(args=args, mode='train')
-    args.dataset = 'data.caltech101'
-    train_data = utils.get_dataset_tf(args, mode='train', eval_mode='test')
-    if args.test:
-        if args.dataset != 'rhotelid':
-            val_data = utils.get_dataset(args=args, mode='test')
-        else:
-            val_data = utils.get_dataset(args=args, mode='test', extra_args={'classes': train_data.dataset.classes,
-                                                                'class_to_idx': train_data.dataset.class_to_idx})
-    else:
-        val_data = None
 
+    if args.vtab:
+        train_data = utils.get_dataset_tf(args, mode='train', eval_mode='test')
+        val_data = utils.get_dataset_tf(args, mode='train', eval_mode='valid')
+        test_data = val_data = utils.get_dataset_tf(args, mode='eval', eval_mode='test')
+    else:
+        train_data = utils.get_dataset(args=args, mode='train')
+        val_data = None
+        if args.test:
+            if args.dataset != 'rhotelid':
+                test_data = utils.get_dataset(args=args, mode='test')
+            else:
+                test_data = utils.get_dataset(args=args, mode='test', extra_args={'classes': train_data.dataset.classes,
+                                                                    'class_to_idx': train_data.dataset.class_to_idx})
+        else:
+            test_data = None
+
+    
+    
 
     f_importance_1 = model.evaluate(train_loader=train_data,
-                            val_loader=val_data)
+                            val_loader=val_data,
+                            test_loader=test_data)
     
     f_importance_2 = model.get_feature_importance()
     

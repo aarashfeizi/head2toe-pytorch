@@ -36,6 +36,7 @@ class FineTune(nn.Module):
         self.es_tolerence = args.es_tol
 
         self.use_cache = args.data_use_cache
+        self.vtab = args.vtab
         self.epochs = args.epochs
         self.gl_p = args.loss_gl_p
         self.gl_r = args.loss_gl_r
@@ -330,7 +331,11 @@ class FineTune(nn.Module):
     def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None):
         self._prepare_fc(selected_feature_indices)
         assert self.total_output_size != -1
-        emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_{self.backbone_mode}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.total_output_size}')
+        if self.vtab:
+            vtab_str = 'vtab_'
+        else:
+            vtab_str = ''
+        emb_path = os.path.join(self.log_path, f'{vtab_str}{self.dataset_name}_{self.backbone_name}_{self.backbone_mode}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.total_output_size}')
         utils.make_dirs(emb_path)
         train_emb_path = os.path.join(emb_path, 'train_emb.pkl')
         train_lbls_path = os.path.join(emb_path, 'train_lbls.npy')
@@ -401,9 +406,9 @@ class FineTune(nn.Module):
 
         return self._train_classifier(train_embedding_dl, val_embedding_dl)
 
-    def evaluate(self, train_loader, val_loader):
+    def evaluate(self, train_loader, val_loader, test_loader):
         final_val_acc = self.optimize_finetune(train_loader=train_loader, 
-                                val_loader=val_loader,
+                                val_loader=test_loader,
                                 selected_feature_indices=None)
         f_importance = self.get_feature_importance()
         print('Final validation acc:', final_val_acc)
