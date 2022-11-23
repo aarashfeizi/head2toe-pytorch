@@ -236,16 +236,18 @@ def get_dataset_tf(args, mode='train', eval_mode='test'):
   image_size = args.img_size
   batch_size = args.batch_size
   dataset_cache_path = os.path.join(args.log_path, 'cache/dataset/', args.dataset, f'{args.dataset}_{mode}_{eval_mode}.pkl')
+  print(f'Loading {data_source}_{mode}_{eval_mode}')
   if not os.path.exists(dataset_cache_path):
-    print(f'Loading {data_source}_{mode}_{eval_mode}')
     tf_dataset = input_pipeline.create_vtab_dataset(
                           dataset=data_source, mode=mode, image_size=image_size,
                           batch_size=batch_size, eval_mode=eval_mode)
               
     np_dataset = _convert_tf_datset_to_np(tf_dataset)
+    print(f'Saving to {dataset_cache_path}')
     make_dirs(os.path.join(args.log_path, 'cache/dataset/', args.dataset))
     save_dataset(np_dataset, dataset_cache_path)
   else:
+    print(f'Loading from {dataset_cache_path}')
     np_dataset = load_dataset(dataset_cache_path)
 
   data = DataLoader(np_dataset, batch_size=batch_size, num_workers=args.num_workers, pin_memory=True)
