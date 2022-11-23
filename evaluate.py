@@ -28,6 +28,10 @@ def main():
         trainval_data = utils.get_dataset_tf(args, mode='train', eval_mode='test')
         test_data = utils.get_dataset_tf(args, mode='eval', eval_mode='test')
         nb_classes = utils.get_nb_classes(trainval_data)
+        print(f'train size: {len(train_data.dataset)}')
+        print(f'val size: {len(val_data.dataset)}')
+        print(f'trainval size: {len(trainval_data.dataset)}')
+        print(f'test size: {len(test_data.dataset)}')
         print(f'class number: {nb_classes}')
     else:
         nb_classes = None
