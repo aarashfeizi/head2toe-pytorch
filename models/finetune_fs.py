@@ -51,7 +51,8 @@ class FineTune_FS(finetune.FineTune):
 
     def _calculate_scores(self, train_loader, val_loader):
         # Pre-generate the embeddings
-        _ = self.optimize_finetune(train_loader, val_loader, None)
+        _ = self.optimize_finetune(train_loader, val_loader, None,
+                                split_names={'train': 'train', 'val': 'val'})
         
         all_scores = self.get_feature_importance()
         return all_scores
@@ -101,7 +102,8 @@ class FineTune_FS(finetune.FineTune):
         feature_importance = self.get_feature_importance()
         final_val_acc = self.optimize_finetune(train_loader=trainval_loader, 
                                 val_loader=test_loader,
-                                selected_feature_indices=selected_features)
+                                selected_feature_indices=selected_features,
+                                split_names={'train': 'trainval', 'val': 'test'})
 
         print('Final validation acc:', final_val_acc)
         utils.wandb_update_value({'val/acc': final_val_acc})
