@@ -235,7 +235,7 @@ def get_dataset_tf(args, mode='train', eval_mode='test'):
   data_source = VTAB_DATASETS[args.dataset]
   image_size = args.img_size
   batch_size = args.batch_size
-  dataset_cache_path = os.path.join(args.log_path, 'cache/dataset/', args.dataset, f'{data_source}_{mode}_{eval_mode}.pkl')
+  dataset_cache_path = os.path.join(args.log_path, 'cache/dataset/', args.dataset, f'{args.dataset}_{mode}_{eval_mode}.pkl')
   if not os.path.exists(dataset_cache_path):
     print(f'Loading {data_source}_{mode}_{eval_mode}')
     tf_dataset = input_pipeline.create_vtab_dataset(
