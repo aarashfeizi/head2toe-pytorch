@@ -112,7 +112,7 @@ class FineTune(nn.Module):
         self.classification_layer = nn.Sequential(OrderedDict([('fc', nn.Linear(self.output_size, self.nb_classes))]))
 
     
-    def __group_lasso_reg(self):
+    def _group_lasso_reg(self):
         # self.feature_importance = torch.norm(fc_weights, dim=0, p=2).detach().cpu()
         fc_weights = self.classification_layer.fc.weight
         return torch.norm(torch.norm(fc_weights, dim=0, p=self.gl_r), p=self.gl_r)
@@ -221,12 +221,13 @@ class FineTune(nn.Module):
                 x, l = batch
                 if self.use_cuda:
                     x = x.cuda()
+                    l = l.type(torch.LongTensor)
                     l = l.cuda()
                 logits = self.classification_layer(x)
-                loss = self.loss_fn(input=logits, target=l) + self.gl_coeff * self.__group_lasso_reg() 
+                loss = self.loss_fn(input=logits, target=l) + self.gl_coeff * self._group_lasso_reg() 
 
                 ce_loss = self.loss_fn(input=logits, target=l)
-                group_lasso_reg = self.__group_lasso_reg()
+                group_lasso_reg = self._group_lasso_reg()
 
                 loss = ce_loss + self.gl_coeff * group_lasso_reg
                 epoch_loss += loss.item()
@@ -274,10 +275,11 @@ class FineTune(nn.Module):
                 x, l = batch
                 if self.use_cuda:
                     x = x.cuda()
+                    l = l.type(torch.LongTensor)
                     l = l.cuda()
                 logits = self.classification_layer(x)
                 ce_loss = self.loss_fn(input=logits, target=l)
-                group_lasso_reg = self.__group_lasso_reg()
+                group_lasso_reg = self._group_lasso_reg()
 
                 loss = ce_loss + self.gl_coeff * group_lasso_reg
                 epoch_loss += loss.item()

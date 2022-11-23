@@ -234,10 +234,10 @@ def get_dataset_tf(args, mode='train', eval_mode='test'):
   data_source = VTAB_DATASETS[args.dataset]
   image_size = args.img_size
   batch_size = args.batch_size
+  print(f'Loading {data_source}_{mode}_{eval_mode}')
   tf_dataset = input_pipeline.create_vtab_dataset(
                         dataset=data_source, mode=mode, image_size=image_size,
                         batch_size=batch_size, eval_mode=eval_mode)
-  print(f'Done loading {data_source}_{mode}_{eval_mode}')
             
   np_dataset = _convert_tf_datset_to_np(tf_dataset)
 
