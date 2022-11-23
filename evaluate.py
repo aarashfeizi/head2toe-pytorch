@@ -29,11 +29,13 @@ def main():
 
 
     if args.vtab:
-        train_data = utils.get_dataset_tf(args, mode='train', eval_mode='test')
-        val_data = utils.get_dataset_tf(args, mode='train', eval_mode='valid')
+        train_data = utils.get_dataset_tf(args, mode='train', eval_mode='valid')
+        val_data = utils.get_dataset_tf(args, mode='eval', eval_mode='valid')
+        trainval_data = utils.get_dataset_tf(args, mode='train', eval_mode='test')
         test_data = utils.get_dataset_tf(args, mode='eval', eval_mode='test')
     else:
         train_data = utils.get_dataset(args=args, mode='train')
+        trainval_data = train_data
         val_data = None
         if args.test:
             if args.dataset != 'rhotelid':
@@ -49,7 +51,8 @@ def main():
 
     f_importance_1 = model.evaluate(train_loader=train_data,
                             val_loader=val_data,
-                            test_loader=test_data)
+                            test_loader=test_data,
+                            trainval_loader=trainval_data)
     
     f_importance_2 = model.get_feature_importance()
     

@@ -406,8 +406,8 @@ class FineTune(nn.Module):
 
         return self._train_classifier(train_embedding_dl, val_embedding_dl)
 
-    def evaluate(self, train_loader, val_loader, test_loader):
-        final_val_acc = self.optimize_finetune(train_loader=train_loader, 
+    def evaluate(self, train_loader, val_loader, test_loader, trainval_loader):
+        final_val_acc = self.optimize_finetune(train_loader=trainval_loader, 
                                 val_loader=test_loader,
                                 selected_feature_indices=None)
         f_importance = self.get_feature_importance()
