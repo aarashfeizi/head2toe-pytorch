@@ -1,2 +1,4 @@
 __pycache__/
 create_plots.py
+key.txt
+wandb_key.txt

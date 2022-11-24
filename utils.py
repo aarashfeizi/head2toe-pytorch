@@ -12,11 +12,18 @@ import os
 import wandb
 import random
 import pickle
+import input_pipeline
 
 wandb_dict = {}
 
 def init_wandb(args):
     mode = 'online' if args.wandb_online else 'offline'
+    if mode == 'offline':
+      print('WANDB offline mode!')
+      with open('wandb_key.txt', 'r') as f:
+        key = f.read().strip()
+      os.environ["WANDB_API_KEY"] = key
+      os.environ["WANDB_MODE"] = "offline"
     wandb.init(config=args, dir=os.path.join(args.log_path, 'wandb/'), mode=mode)
     args = wandb.config
     return args
@@ -258,7 +265,6 @@ def get_dataset_tf(args, mode='train', eval_mode='test'):
   dataset_cache_path = os.path.join(args.log_path, 'cache/dataset/', args.dataset, f'{args.dataset}_{mode}_{eval_mode}.pkl')
   print(f'Loading {data_source}_{mode}_{eval_mode}')
   if not os.path.exists(dataset_cache_path):
-    import input_pipeline
     tf_dataset = input_pipeline.create_vtab_dataset(
                           dataset=data_source, mode=mode, image_size=image_size,
                           batch_size=batch_size, eval_mode=eval_mode)
