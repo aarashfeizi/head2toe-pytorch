@@ -47,5 +47,6 @@
     "finetune_backbone": false,
     "loss_gl_p": 1,
     "loss_gl_r": 2,
-    "optimizer": "adam"
+    "optimizer": "adam",
+    "scheduler": "cosine"
 }

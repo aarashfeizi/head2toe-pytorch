@@ -77,6 +77,7 @@ class FineTune(nn.Module):
         self.optimizer_name = args.optimizer
         self.args = args
         self.optimizer = None
+        self.scheduler = None
 
     
     def _set_optimizer(self, args):
@@ -86,6 +87,11 @@ class FineTune(nn.Module):
             self.optimizer = torch.optim.Adam(params=self.classification_layer.parameters(), lr=args.lr)
         else:
             raise Exception('Optimizer not set, or not supported')
+        
+        if args.scheduler == 'cosine':
+            self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epochs)
+        elif args.scheduler is not None:
+            raise Exception('Scheduler not supported')
     
     def _prepare_fc(self, selected_feature_indices=None):
         if selected_feature_indices is None:
@@ -329,6 +335,9 @@ class FineTune(nn.Module):
             if self.es_tolerence > 0 and self.tol_count > self.es_tolerence:
                 print(f'Early stopping, val_acc did not improve over {best_val_acc} for {self.es_tolerence} epochs!')
                 break
+            
+            if self.scheduler is not None:
+                self.scheduler.step()
 
         return best_val_acc
 
