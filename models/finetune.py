@@ -330,6 +330,8 @@ class FineTune(nn.Module):
             else:
                 self.tol_count += 1
             print('val_acc: ', val_acc)
+            if self.scheduler is not None:
+                utils.wandb_update_value({'train/lr': self.optimizer.param_groups[0]["lr"]})
             if self.using_wandb:
                 utils.wandb_log()
             if self.es_tolerence > 0 and self.tol_count > self.es_tolerence:
