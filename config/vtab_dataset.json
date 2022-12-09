@@ -31,6 +31,7 @@
     "nb_classes": 0,
     "img_size": 224,
     "train_to_val_ratio_split": 0.8,
+    "vtab_5fold": true,
     
     "normalize_param": {
       "mean": [0.4914, 0.4822, 0.4465],

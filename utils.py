@@ -254,7 +254,7 @@ def get_nb_classes(loader):
   _, y = list(zip(*loader.dataset))
   return len(np.unique(y))
 
-def get_dataset_tf(args, mode='train', eval_mode='test'):
+def get_dataset_tf(args, mode='train', eval_mode='test', fold_idx=4):
   """
     mode: ['train', 'eval']
     eval_mode: ['valid', 'test']
@@ -262,12 +262,16 @@ def get_dataset_tf(args, mode='train', eval_mode='test'):
   data_source = VTAB_DATASETS[args.dataset]
   image_size = args.img_size
   batch_size = args.batch_size
-  dataset_cache_path = os.path.join(args.log_path, 'cache/dataset/', args.dataset, f'{args.dataset}_{mode}_{eval_mode}.pkl')
+  if eval_mode == 'valid':
+    eval_string = f'{eval_mode}_{fold_idx}'
+  else:
+    eval_string = eval_mode
+  dataset_cache_path = os.path.join(args.log_path, 'cache/dataset/', args.dataset, f'{args.dataset}_{mode}_{eval_string}.pkl')
   print(f'Loading {data_source}_{mode}_{eval_mode}')
   if not os.path.exists(dataset_cache_path):
     tf_dataset = input_pipeline.create_vtab_dataset(
                           dataset=data_source, mode=mode, image_size=image_size,
-                          batch_size=batch_size, eval_mode=eval_mode)
+                          batch_size=batch_size, eval_mode=eval_mode, valid_fold_id=fold_idx)
               
     np_dataset = _convert_tf_datset_to_np(tf_dataset)
     print(f'Saving to {dataset_cache_path}')
@@ -311,8 +315,8 @@ def make_dirs(path):
     os.makedirs(path)
     return
 
-def save_np(f_importance, save_path):
-  np.save(os.path.join(save_path, 'feature_importance.npy'), f_importance)
+def save_np(np_data, save_path, file_name):
+  np.save(os.path.join(save_path, f'{file_name}.npy'), np_data)
 
 
 def load_dataset(data_path):

@@ -1,4 +1,5 @@
-{   
+{
+
     "loss_gl_coeff": 1,
     "lr": 1e-3,
     "emb_normalization": "unit_vector",
@@ -31,6 +32,7 @@
     "nb_classes": 3150,
     "img_size": 224,
     "train_to_val_ratio_split": 0.8,
+    "vtab_5fold": false,
     
     "normalize_param": {
       "mean": [0.4914, 0.4822, 0.4465],
@@ -47,5 +49,6 @@
     "finetune_backbone": false,
     "loss_gl_p": 1,
     "loss_gl_r": 2,
-    "optimizer": "adam"
+    "optimizer": "adam",
+    "scheduler": "cosine"
 }

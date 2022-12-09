@@ -100,12 +100,16 @@ class FineTune_FS(finetune.FineTune):
         self.gl_coeff = 0 # for final finetuning, no regularizer
 
         feature_importance = self.get_feature_importance()
-        final_val_acc = self.optimize_finetune(train_loader=trainval_loader, 
-                                val_loader=test_loader,
-                                selected_feature_indices=selected_features,
-                                split_names={'train': 'trainval', 'val': 'test'})
 
-        print('Final validation acc:', final_val_acc)
-        utils.wandb_update_value({'val/acc': final_val_acc})
-        utils.wandb_log()
-        return feature_importance
+        if test_loader is not None:
+            final_val_acc = self.optimize_finetune(train_loader=trainval_loader, 
+                                    val_loader=test_loader,
+                                    selected_feature_indices=selected_features,
+                                    split_names={'train': 'trainval', 'val': 'test'})
+        else:
+            final_val_acc = self.optimize_finetune(train_loader=train_loader, 
+                        val_loader=val_loader,
+                        selected_feature_indices=selected_features,
+                        split_names={'train': 'train', 'val': 'val'})
+
+        return feature_importance, final_val_acc

@@ -88,10 +88,10 @@ class FineTune(nn.Module):
         else:
             raise Exception('Optimizer not set, or not supported')
         
-        # if args.scheduler == 'cosine':
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epochs)
-        # elif args.scheduler is not None:
-        #     raise Exception('Scheduler not supported')
+        if args.scheduler == 'cosine':
+            self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epochs)
+        elif args.scheduler is not None:
+            raise Exception('Scheduler not supported')
     
     def _prepare_fc(self, selected_feature_indices=None):
         if selected_feature_indices is None:
@@ -429,12 +429,17 @@ class FineTune(nn.Module):
         return self._train_classifier(train_embedding_dl, val_embedding_dl)
 
     def evaluate(self, train_loader, val_loader, test_loader, trainval_loader):
-        final_val_acc = self.optimize_finetune(train_loader=trainval_loader, 
-                                val_loader=test_loader,
-                                selected_feature_indices=None,
-                                split_names={'train': 'trainval', 'val': 'test'})
+        if test_loader is not None:
+            final_val_acc = self.optimize_finetune(train_loader=trainval_loader, 
+                                    val_loader=test_loader,
+                                    selected_feature_indices=None,
+                                    split_names={'train': 'trainval', 'val': 'test'})
+        else:
+            final_val_acc = self.optimize_finetune(train_loader=train_loader, 
+                        val_loader=val_loader,
+                        selected_feature_indices=None,
+                        split_names={'train': 'train', 'val': 'val'})
+
         f_importance = self.get_feature_importance()
-        print('Final validation acc:', final_val_acc)
-        utils.wandb_update_value({'val/acc': final_val_acc})
-        utils.wandb_log()
-        return f_importance
+
+        return f_importance, final_val_acc
