@@ -32,8 +32,8 @@ def main():
     for fold_idx in range(start_fold, 5):
         print('Fold: ', fold_idx)
         if args.vtab:
-            train_data = utils.get_dataset_tf(args, mode='train', eval_mode='valid', fold=fold_idx)
-            val_data = utils.get_dataset_tf(args, mode='eval', eval_mode='valid', fold=fold_idx)
+            train_data = utils.get_dataset_tf(args, mode='train', eval_mode='valid', fold_idx=fold_idx)
+            val_data = utils.get_dataset_tf(args, mode='eval', eval_mode='valid', fold_idx=fold_idx)
             if args.test:
                 trainval_data = utils.get_dataset_tf(args, mode='train', eval_mode='test')
                 test_data = utils.get_dataset_tf(args, mode='eval', eval_mode='test')
