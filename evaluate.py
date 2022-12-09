@@ -5,6 +5,7 @@ from models import finetune, finetune_fs
 import wandb
 import os
 import numpy as np
+import json
 
 
 def main():
@@ -18,9 +19,8 @@ def main():
         save_path = os.path.join(save_path, f'{r.sweep_id}', f'{r.name}')
         utils.make_dirs(save_path)
     
-
-    
     print(args)
+
     utils.seed_all(args.seed, args.cuda)
 
     if args.vtab_5fold and not args.test:
@@ -91,6 +91,9 @@ def main():
     print('Final validation acc (avg if 5fold):', np.mean(val_accs))
     utils.wandb_update_value({'val/acc': np.mean(val_accs)})
     utils.wandb_log()
+
+    with open(os.path.join(save_path, 'args.json'), 'w') as f:
+        json.dump(vars(args), f)
 
     # import pdb
     # pdb.set_trace()
