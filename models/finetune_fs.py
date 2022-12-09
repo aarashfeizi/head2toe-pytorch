@@ -52,7 +52,7 @@ class FineTune_FS(finetune.FineTune):
     def _calculate_scores(self, train_loader, val_loader):
         # Pre-generate the embeddings
         _ = self.optimize_finetune(train_loader, val_loader, None,
-                                split_names={'train': 'train', 'val': 'val'})
+                                split_names={'train': f'train_{self.fold_idx}', 'val': f'val_{self.fold_idx}'})
         
         all_scores = self.get_feature_importance()
         return all_scores
@@ -75,7 +75,7 @@ class FineTune_FS(finetune.FineTune):
             selected_feature_indices.append(kept_indices)
         return selected_feature_indices
     
-    def _select_features(self, train_loader, val_loader=None):
+    def _select_features(self, train_loader, val_loader=None, fold_idx=4):
         # if config_fs.type == 'none':
         #     return None, None
         if self.average_over_k > 1:
@@ -110,6 +110,6 @@ class FineTune_FS(finetune.FineTune):
             final_val_acc = self.optimize_finetune(train_loader=train_loader, 
                         val_loader=val_loader,
                         selected_feature_indices=selected_features,
-                        split_names={'train': 'train', 'val': 'val'})
+                        split_names={'train': f'train_{self.fold_idx}', 'val': f'val_{self.fold_idx}'})
 
         return feature_importance, final_val_acc

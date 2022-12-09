@@ -76,7 +76,7 @@ def main():
             model = finetune.FineTune(args=args, backbone='resnet50', nb_classes=nb_classes)
 
         
-
+        model.set_fold_idx(fold_idx)
         f_importance_1, final_val_acc = model.evaluate(train_loader=train_data,
                                 val_loader=val_data,
                                 test_loader=test_data,

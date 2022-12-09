@@ -47,6 +47,7 @@ class FineTune(nn.Module):
         self.train_to_val_ratio_split = args.train_to_val_ratio_split
         self.target_size = args.target_size
         self.layers_to_use = args.layers_to_use
+        self.fold_idx = 4
 
         self.train_batch_size = args.train_batch_size
         self.val_batch_size = args.val_batch_size
@@ -79,7 +80,9 @@ class FineTune(nn.Module):
         self.optimizer = None
         self.scheduler = None
 
-    
+    def set_fold_idx(self, fold_idx):
+        self.fold_idx = fold_idx
+
     def _set_optimizer(self, args):
         if self.optimizer_name == 'sgd':
             self.optimizer = torch.optim.SGD(params=self.classification_layer.parameters(), momentum=0.9, lr=args.lr)
@@ -438,7 +441,7 @@ class FineTune(nn.Module):
             final_val_acc = self.optimize_finetune(train_loader=train_loader, 
                         val_loader=val_loader,
                         selected_feature_indices=None,
-                        split_names={'train': 'train', 'val': 'val'})
+                        split_names={'train': f'train_{self.fold_idx}', 'val': f'val_{self.fold_idx}'})
 
         f_importance = self.get_feature_importance()
 
