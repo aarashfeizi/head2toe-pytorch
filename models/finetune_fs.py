@@ -75,7 +75,7 @@ class FineTune_FS(finetune.FineTune):
             selected_feature_indices.append(kept_indices)
         return selected_feature_indices
     
-    def _select_features(self, train_loader, val_loader=None, fold_idx=4):
+    def _select_features(self, train_loader, val_loader=None):
         # if config_fs.type == 'none':
         #     return None, None
         if self.average_over_k > 1:

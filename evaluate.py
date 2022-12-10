@@ -92,8 +92,8 @@ def main():
     utils.wandb_update_value({'val/acc': np.mean(val_accs)})
     utils.wandb_log()
 
-    with open(os.path.join(save_path, 'args.json'), 'w') as f:
-        json.dump(vars(args), f)
+    with open(os.path.join(save_path, 'args.txt'), 'w') as f:
+        f.write(str(vars(args)))
 
     # import pdb
     # pdb.set_trace()
