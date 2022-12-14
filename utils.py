@@ -270,7 +270,7 @@ def get_dataset_tf(args, mode='train', eval_mode='test', fold_idx=4):
   dataset_cache_path = os.path.join(args.log_path, 'cache/dataset/', args.dataset, f'{args.dataset}_{mode}_{eval_string}.pkl')
   print(f'Loading {data_source}_{mode}_{eval_mode}')
   if not os.path.exists(dataset_cache_path):
-    tf_dataset = input_pipeline.create_vtab_dataset(
+    tf_dataset = input_pipeline.create_vtab_dataset_legacy(
                           dataset=data_source, mode=mode, image_size=image_size,
                           batch_size=batch_size, eval_mode=eval_mode, valid_fold_id=fold_idx)
               
