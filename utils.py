@@ -23,7 +23,7 @@ def init_wandb(args):
       with open('wandb_key.txt', 'r') as f:
         key = f.read().strip()
       os.environ["WANDB_API_KEY"] = key
-      os.environ["WANDB_MODE"] = "offline"
+      os.environ["WANDB_MODE"] = "dryrun"
     wandb.init(config=args, dir=os.path.join(args.log_path, 'wandb/'), mode=mode)
     args = wandb.config
     return args
@@ -120,7 +120,7 @@ def get_args():
     parser.add_argument('--config_file', default='config/cifar100.json', type=str, help='Path to config file')
     parser.add_argument('--batch_size', default=None, type=int, help='Batch size')
     parser.add_argument('--lr', default=None, type=float, help='Learning rate')
-    parser.add_argument('--seed', default=402, type=int, help='Random Seed')
+    parser.add_argument('--seed', default=None, type=int, help='Random Seed')
     parser.add_argument('--fraction', default=None, type=float, help='Learning rate')
     parser.add_argument('--loss_gl_coeff', default=None, type=float, help='Group Lasso coefficient')
     parser.add_argument('--backbone_mode', default='supervised', type=str, help='Path to config file', choices=BACKBONE_MODES)
@@ -140,6 +140,9 @@ def get_args():
     
     if args.loss_gl_coeff:
       cfg_dict['loss_gl_coeff'] = args.loss_gl_coeff  
+
+    if args.seed:
+      cfg_dict['seed'] = args.seed  
 
 
     if cfg_dict['dataset'] == '' and cfg_dict['vtab_dataset'] is None:
