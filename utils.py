@@ -144,6 +144,10 @@ def get_args():
     if args.seed:
       cfg_dict['seed'] = args.seed  
 
+    if args.seed:
+      cfg_dict['fraction'] = args.fraction
+      
+
 
     if cfg_dict['dataset'] == '' and cfg_dict['vtab_dataset'] is None:
       raise Exception('Either dataset should be set or vtab_dataset')
