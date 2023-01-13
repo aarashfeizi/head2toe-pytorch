@@ -6,6 +6,7 @@ import wandb
 import os
 import numpy as np
 import json
+import torch.nn as nn
 
 
 def main():
@@ -75,6 +76,9 @@ def main():
         else:
             model = finetune.FineTune(args=args, backbone='resnet50', nb_classes=nb_classes)
 
+        if torch.cuda.device_count() > 1:
+            print(f'Using {torch.cuda.device_count()} gpus!')
+            model = nn.DataParallel(model)
         
         model.set_fold_idx(fold_idx)
         f_importance_1, final_val_acc = model.evaluate(train_loader=train_data,
