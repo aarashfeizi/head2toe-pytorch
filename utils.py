@@ -11,11 +11,19 @@ import json
 import os
 import wandb
 import random
+import pickle
+import input_pipeline
 
 wandb_dict = {}
 
 def init_wandb(args):
     mode = 'online' if args.wandb_online else 'offline'
+    if mode == 'offline':
+      print('WANDB offline mode!')
+      with open('wandb_key.txt', 'r') as f:
+        key = f.read().strip()
+      os.environ["WANDB_API_KEY"] = key
+      os.environ["WANDB_MODE"] = "dryrun"
     wandb.init(config=args, dir=os.path.join(args.log_path, 'wandb/'), mode=mode)
     args = wandb.config
     return args
@@ -67,14 +75,56 @@ BACKBONE_MODES = ['supervised',
                   'simclr',
                   'unigrad']
 
+VTAB_DATASETS = {"caltech" : 'data.caltech101', \
+                 "cifar100" : 'data.cifar(num_classes=100)', \
+                 "dtd" : 'data.dtd', \
+                 "flower102" : 'data.oxford_flowers102', \
+                 "pet" : 'data.oxford_iiit_pet', \
+                 "camelyon" : 'data.patch_camelyon', \
+                 "sun397" : 'data.sun397', \
+                 "svhn" : 'data.svhn', \
+                 "resics45" : 'data.resisc45', \
+                 "eurosat" : 'data.eurosat', \
+                 "dmlab" : 'data.dmlab', \
+                 "kitti" : 'data.kitti(task="closest_vehicle_distance")', \
+                 "norb_azimuth" : 'data.smallnorb(predicted_attribute="label_azimuth")', \
+                 "norb_elevation" : 'data.smallnorb(predicted_attribute="label_elevation")', \
+                 "dsprites_x" : 'data.dsprites(predicted_attribute="label_x_position",num_classes=16)', \
+                 "dsprites_orient" : 'data.dsprites(predicted_attribute="label_orientation",num_classes=16)', \
+                 "clevr_dist" : 'data.clevr(task="closest_object_distance")', \
+                 "clevr_all" : 'data.clevr(task="count_all")', \
+                 "retino" : 'data.diabetic_retinopathy(config="btgraham-300")'}
+
+VTAB_TARGET_SIZES = {"caltech" : 8192, \
+                      "cifar100" : 512, \
+                      "dtd" : 24576, \
+                      "flower102" : 512, \
+                      "pet" : 8192, \
+                      "camelyon" : 512, \
+                      "sun397" : 512, \
+                      "svhn" : 24576, \
+                      "resics45" : 8192, \
+                      "eurosat" : 512, \
+                      "dmlab" : 8192, \
+                      "kitti" : 8192, \
+                      "norb_azimuth" : 24576, \
+                      "norb_elevation" : 8192, \
+                      "dsprites_x" : 8192, \
+                      "dsprites_orient" : 512, \
+                      "clevr_dist" : 8192, \
+                      "clevr_all" : 512, \
+                      "retino" : 8192}
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_file', default='config/cifar100.json', type=str, help='Path to config file')
     parser.add_argument('--batch_size', default=None, type=int, help='Batch size')
     parser.add_argument('--lr', default=None, type=float, help='Learning rate')
+    parser.add_argument('--seed', default=None, type=int, help='Random Seed')
     parser.add_argument('--fraction', default=None, type=float, help='Learning rate')
     parser.add_argument('--loss_gl_coeff', default=None, type=float, help='Group Lasso coefficient')
     parser.add_argument('--backbone_mode', default='supervised', type=str, help='Path to config file', choices=BACKBONE_MODES)
+    parser.add_argument('--vtab_dataset', default=None, type=str, help='Path to config file', choices=list(VTAB_DATASETS.keys()))
 
 
     args = parser.parse_args()
@@ -90,6 +140,25 @@ def get_args():
     
     if args.loss_gl_coeff:
       cfg_dict['loss_gl_coeff'] = args.loss_gl_coeff  
+
+    if args.seed:
+      cfg_dict['seed'] = args.seed  
+
+    if args.seed:
+      cfg_dict['fraction'] = args.fraction
+      
+
+
+    if cfg_dict['dataset'] == '' and cfg_dict['vtab_dataset'] is None:
+      raise Exception('Either dataset should be set or vtab_dataset')
+    elif cfg_dict['dataset'] == '':
+      cfg_dict['dataset'] = cfg_dict['vtab_dataset']
+      cfg_dict['target_size'] = VTAB_TARGET_SIZES[cfg_dict['vtab_dataset']]
+      cfg_dict['vtab'] = True
+    else:
+      cfg_dict['vtab'] = False
+
+
 
     args = argparse.Namespace(**cfg_dict)
 
@@ -173,6 +242,56 @@ def flatten_and_concat(output_dict, pool_size=0, target_size=0,
 
   return all_features
 
+def _convert_tf_datset_to_np(tf_data):
+  from einops import rearrange
+  ys = []
+  xs = []
+  for x, y in tf_data:
+    x = x.numpy()
+    y = y.numpy()
+    x = rearrange(x, 'b h w c -> b c h w')
+    ys.append(y)
+    xs.append(x)
+
+  x = np.concatenate(xs)
+  y = np.concatenate(ys)
+
+  return list(zip(x, y))
+
+def get_nb_classes(loader):
+  _, y = list(zip(*loader.dataset))
+  return len(np.unique(y))
+
+def get_dataset_tf(args, mode='train', eval_mode='test', fold_idx=4):
+  """
+    mode: ['train', 'eval']
+    eval_mode: ['valid', 'test']
+  """
+  data_source = VTAB_DATASETS[args.dataset]
+  image_size = args.img_size
+  batch_size = args.batch_size
+  if eval_mode == 'valid':
+    eval_string = f'{eval_mode}_{fold_idx}'
+  else:
+    eval_string = eval_mode
+  dataset_cache_path = os.path.join(args.log_path, 'cache/dataset/', args.dataset, f'{args.dataset}_{mode}_{eval_string}.pkl')
+  print(f'Loading {data_source}_{mode}_{eval_mode}')
+  if not os.path.exists(dataset_cache_path):
+    tf_dataset = input_pipeline.create_vtab_dataset_legacy(
+                          dataset=data_source, mode=mode, image_size=image_size,
+                          batch_size=batch_size, eval_mode=eval_mode, valid_fold_id=fold_idx)
+              
+    np_dataset = _convert_tf_datset_to_np(tf_dataset)
+    print(f'Saving to {dataset_cache_path}')
+    make_dirs(os.path.join(args.log_path, 'cache/dataset/', args.dataset))
+    save_dataset(np_dataset, dataset_cache_path)
+  else:
+    print(f'Loading from {dataset_cache_path}')
+    np_dataset = load_dataset(dataset_cache_path)
+
+  data = DataLoader(np_dataset, batch_size=batch_size, num_workers=args.num_workers, pin_memory=True)
+  return data
+
 
 def get_dataset(args, mode='train', extra_args={}):
     # if mode == 'train':
@@ -204,5 +323,23 @@ def make_dirs(path):
     os.makedirs(path)
     return
 
-def save_np(f_importance, save_path):
-  np.save(os.path.join(save_path, 'feature_importance.npy'), f_importance)
+def save_np(np_data, save_path, file_name):
+  np.save(os.path.join(save_path, f'{file_name}.npy'), np_data)
+
+
+def load_dataset(data_path):
+    with open(data_path, 'rb') as f:
+        data = pickle.load(f)
+
+    return data
+
+def save_dataset(data, data_path):
+    with open(data_path, 'wb') as f:
+        pickle.dump(data, f)
+
+def save_dataset_npy(data, data_path):
+    np.save(data_path, data)
+
+def load_dataset_npy(data_path):
+    data = np.load(data_path)
+    return data

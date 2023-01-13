@@ -19,8 +19,8 @@ from sklearn.model_selection import train_test_split
 
 class FineTune_FS(finetune.FineTune):
 
-    def __init__(self, args, backbone):
-        super(FineTune_FS, self).__init__(args, backbone)
+    def __init__(self, args, backbone, nb_classes=None):
+        super(FineTune_FS, self).__init__(args, backbone, nb_classes)
         self.keep_fraction = args.fraction
         self.keep_fraction_offset = args.fraction_offset
         self.mean_interpolation_coef = args.mean_interpolation_coef
@@ -51,7 +51,8 @@ class FineTune_FS(finetune.FineTune):
 
     def _calculate_scores(self, train_loader, val_loader):
         # Pre-generate the embeddings
-        _ = self.optimize_finetune(train_loader, val_loader, None)
+        _ = self.optimize_finetune(train_loader, val_loader, None,
+                                split_names={'train': f'train_{self.fold_idx}', 'val': f'val_{self.fold_idx}'})
         
         all_scores = self.get_feature_importance()
         return all_scores
@@ -92,18 +93,23 @@ class FineTune_FS(finetune.FineTune):
         return selected_feature_indices, mean_scores
 
 
-    def evaluate(self, train_loader, val_loader):
+    def evaluate(self, train_loader, val_loader, test_loader, trainval_loader):
 
-        selected_features, mean_scores = self._select_features(train_loader=train_loader, val_loader=None) # choose with cross validating
+        selected_features, mean_scores = self._select_features(train_loader=train_loader, val_loader=val_loader) # choose with cross validating
 
         self.gl_coeff = 0 # for final finetuning, no regularizer
 
         feature_importance = self.get_feature_importance()
-        final_val_acc = self.optimize_finetune(train_loader=train_loader, 
-                                val_loader=val_loader,
-                                selected_feature_indices=selected_features)
 
-        print('Final validation acc:', final_val_acc)
-        utils.wandb_update_value({'val/acc': final_val_acc})
-        utils.wandb_log()
-        return feature_importance
+        if test_loader is not None:
+            final_val_acc = self.optimize_finetune(train_loader=trainval_loader, 
+                                    val_loader=test_loader,
+                                    selected_feature_indices=selected_features,
+                                    split_names={'train': 'trainval', 'val': 'test'})
+        else:
+            final_val_acc = self.optimize_finetune(train_loader=train_loader, 
+                        val_loader=val_loader,
+                        selected_feature_indices=selected_features,
+                        split_names={'train': f'train_{self.fold_idx}', 'val': f'val_{self.fold_idx}'})
+
+        return feature_importance, final_val_acc

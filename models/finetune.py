@@ -17,12 +17,14 @@ from sklearn.model_selection import train_test_split
 
 
 class FineTune(nn.Module):
-    def __init__(self, args, backbone):
+    def __init__(self, args, backbone, nb_classes=None):
         super(FineTune, self).__init__()
         self.use_cuda = args.cuda
 
         self.img_size = args.img_size
-        self.nb_classes = args.nb_classes
+        if args.nb_classes == 0:
+            assert nb_classes is not None
+            self.nb_classes = nb_classes
         self.using_wandb = args.wandb
 
         self.backbone_name = backbone
@@ -36,6 +38,7 @@ class FineTune(nn.Module):
         self.es_tolerence = args.es_tol
 
         self.use_cache = args.data_use_cache
+        self.vtab = args.vtab
         self.epochs = args.epochs
         self.gl_p = args.loss_gl_p
         self.gl_r = args.loss_gl_r
@@ -44,6 +47,7 @@ class FineTune(nn.Module):
         self.train_to_val_ratio_split = args.train_to_val_ratio_split
         self.target_size = args.target_size
         self.layers_to_use = args.layers_to_use
+        self.fold_idx = 4
 
         self.train_batch_size = args.train_batch_size
         self.val_batch_size = args.val_batch_size
@@ -59,7 +63,7 @@ class FineTune(nn.Module):
                 
         else:
             raise Exception('Backbone not supported')
-
+        
         if not args.finetune_backbone:
             self.backbone.eval()
         
@@ -74,8 +78,11 @@ class FineTune(nn.Module):
         self.optimizer_name = args.optimizer
         self.args = args
         self.optimizer = None
+        self.scheduler = None
 
-    
+    def set_fold_idx(self, fold_idx):
+        self.fold_idx = fold_idx
+
     def _set_optimizer(self, args):
         if self.optimizer_name == 'sgd':
             self.optimizer = torch.optim.SGD(params=self.classification_layer.parameters(), momentum=0.9, lr=args.lr)
@@ -83,6 +90,11 @@ class FineTune(nn.Module):
             self.optimizer = torch.optim.Adam(params=self.classification_layer.parameters(), lr=args.lr)
         else:
             raise Exception('Optimizer not set, or not supported')
+        
+        if args.scheduler == 'cosine':
+            self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epochs)
+        elif args.scheduler is not None:
+            raise Exception('Scheduler not supported')
     
     def _prepare_fc(self, selected_feature_indices=None):
         if selected_feature_indices is None:
@@ -109,7 +121,7 @@ class FineTune(nn.Module):
         self.classification_layer = nn.Sequential(OrderedDict([('fc', nn.Linear(self.output_size, self.nb_classes))]))
 
     
-    def __group_lasso_reg(self):
+    def _group_lasso_reg(self):
         # self.feature_importance = torch.norm(fc_weights, dim=0, p=2).detach().cpu()
         fc_weights = self.classification_layer.fc.weight
         return torch.norm(torch.norm(fc_weights, dim=0, p=self.gl_r), p=self.gl_r)
@@ -218,12 +230,13 @@ class FineTune(nn.Module):
                 x, l = batch
                 if self.use_cuda:
                     x = x.cuda()
+                    l = l.type(torch.LongTensor)
                     l = l.cuda()
                 logits = self.classification_layer(x)
-                loss = self.loss_fn(input=logits, target=l) + self.gl_coeff * self.__group_lasso_reg() 
+                loss = self.loss_fn(input=logits, target=l) + self.gl_coeff * self._group_lasso_reg() 
 
                 ce_loss = self.loss_fn(input=logits, target=l)
-                group_lasso_reg = self.__group_lasso_reg()
+                group_lasso_reg = self._group_lasso_reg()
 
                 loss = ce_loss + self.gl_coeff * group_lasso_reg
                 epoch_loss += loss.item()
@@ -271,10 +284,11 @@ class FineTune(nn.Module):
                 x, l = batch
                 if self.use_cuda:
                     x = x.cuda()
+                    l = l.type(torch.LongTensor)
                     l = l.cuda()
                 logits = self.classification_layer(x)
                 ce_loss = self.loss_fn(input=logits, target=l)
-                group_lasso_reg = self.__group_lasso_reg()
+                group_lasso_reg = self._group_lasso_reg()
 
                 loss = ce_loss + self.gl_coeff * group_lasso_reg
                 epoch_loss += loss.item()
@@ -319,23 +333,40 @@ class FineTune(nn.Module):
             else:
                 self.tol_count += 1
             print('val_acc: ', val_acc)
+            if self.scheduler is not None:
+                utils.wandb_update_value({'train/lr': self.optimizer.param_groups[0]["lr"]})
             if self.using_wandb:
                 utils.wandb_log()
             if self.es_tolerence > 0 and self.tol_count > self.es_tolerence:
                 print(f'Early stopping, val_acc did not improve over {best_val_acc} for {self.es_tolerence} epochs!')
                 break
+            
+            if self.scheduler is not None:
+                self.scheduler.step()
 
         return best_val_acc
 
-    def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None):
+    def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None, split_names={'train': '', 'val': ''}):
         self._prepare_fc(selected_feature_indices)
+
         assert self.total_output_size != -1
-        emb_path = os.path.join(self.log_path, f'{self.dataset_name}_{self.backbone_name}_{self.backbone_mode}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.total_output_size}')
+        if self.vtab:
+            vtab_str = f'vtab_'
+        else:
+            vtab_str = ''
+        emb_path = os.path.join(self.log_path, 'cache/', f'{vtab_str}{self.dataset_name}_{self.backbone_name}_{self.backbone_mode}_ts{self.target_size}_imgsize{self.img_size}_outputsize{self.total_output_size}')
         utils.make_dirs(emb_path)
-        train_emb_path = os.path.join(emb_path, 'train_emb.pkl')
-        train_lbls_path = os.path.join(emb_path, 'train_lbls.npy')
-        val_emb_path = os.path.join(emb_path, 'val_emb.pkl')
-        val_lbls_path = os.path.join(emb_path, 'val_lbls.npy')
+        if self.vtab:
+            assert split_names["train"] != '' and split_names["val"] != ''
+            train_emb_path = os.path.join(emb_path, f'{split_names["train"]}_emb.pkl')
+            train_lbls_path = os.path.join(emb_path, f'{split_names["train"]}_lbls.npy')
+            val_emb_path = os.path.join(emb_path, f'{split_names["val"]}_emb.pkl')
+            val_lbls_path = os.path.join(emb_path, f'{split_names["val"]}_lbls.npy')
+        else:
+            train_emb_path = os.path.join(emb_path, 'train_emb.pkl')
+            train_lbls_path = os.path.join(emb_path, 'train_lbls.npy')
+            val_emb_path = os.path.join(emb_path, 'val_emb.pkl')
+            val_lbls_path = os.path.join(emb_path, 'val_lbls.npy')
 
         if self.use_cuda:
             self.cuda()
@@ -343,16 +374,16 @@ class FineTune(nn.Module):
         if self.use_cache and os.path.exists(train_emb_path):
             print(f'Using cache.... {train_emb_path}')
             print(f'Using cache.... {train_lbls_path}')
-            train_embeddings = self._load_dataset(train_emb_path)
-            train_labels = self._load_dataset_npy(train_lbls_path)
+            train_embeddings = utils.load_dataset(train_emb_path)
+            train_labels = utils.load_dataset_npy(train_lbls_path)
             train_embeddings = [torch.tensor(t) for t in train_embeddings]
             train_labels = torch.tensor(train_labels)
         else:
             train_embeddings, train_labels = self._get_embedding(train_loader)
             if self.use_cache:
                 to_save = [t.numpy() for t in train_embeddings]
-                self._save_dataset(to_save, train_emb_path)
-                self._save_dataset_npy(train_labels.numpy(), train_lbls_path)
+                utils.save_dataset(to_save, train_emb_path)
+                utils.save_dataset_npy(train_labels.numpy(), train_lbls_path)
 
         train_embeddings = self._process_embeddings(embeddings=train_embeddings,
                                                     selected_features=selected_feature_indices,
@@ -367,8 +398,8 @@ class FineTune(nn.Module):
             if self.use_cache and os.path.exists(val_emb_path):
                 print(f'Using cache.... {val_emb_path}')
                 print(f'Using cache.... {val_lbls_path}')
-                val_embeddings = self._load_dataset(val_emb_path)
-                val_labels = self._load_dataset_npy(val_lbls_path)
+                val_embeddings = utils.load_dataset(val_emb_path)
+                val_labels = utils.load_dataset_npy(val_lbls_path)
                 val_embeddings = [torch.tensor(t) for t in val_embeddings]
                 val_labels = torch.tensor(val_labels) 
             else:
@@ -376,8 +407,8 @@ class FineTune(nn.Module):
 
                 if self.use_cache:
                     to_save = [t.numpy() for t in val_embeddings]
-                    self._save_dataset(to_save, val_emb_path)
-                    self._save_dataset_npy(val_labels.numpy(), val_lbls_path)
+                    utils.save_dataset(to_save, val_emb_path)
+                    utils.save_dataset_npy(val_labels.numpy(), val_lbls_path)
 
             val_embeddings = self._process_embeddings(embeddings=val_embeddings,
                                                         selected_features=selected_feature_indices,
@@ -401,29 +432,18 @@ class FineTune(nn.Module):
 
         return self._train_classifier(train_embedding_dl, val_embedding_dl)
 
-    def evaluate(self, train_loader, val_loader):
-        final_val_acc = self.optimize_finetune(train_loader=train_loader, 
-                                val_loader=val_loader,
-                                selected_feature_indices=None)
+    def evaluate(self, train_loader, val_loader, test_loader, trainval_loader):
+        if test_loader is not None:
+            final_val_acc = self.optimize_finetune(train_loader=trainval_loader, 
+                                    val_loader=test_loader,
+                                    selected_feature_indices=None,
+                                    split_names={'train': 'trainval', 'val': 'test'})
+        else:
+            final_val_acc = self.optimize_finetune(train_loader=train_loader, 
+                        val_loader=val_loader,
+                        selected_feature_indices=None,
+                        split_names={'train': f'train_{self.fold_idx}', 'val': f'val_{self.fold_idx}'})
+
         f_importance = self.get_feature_importance()
-        print('Final validation acc:', final_val_acc)
-        utils.wandb_update_value({'val/acc': final_val_acc})
-        utils.wandb_log()
-        return f_importance
 
-    def _load_dataset(self, data_path):
-        with open(data_path, 'rb') as f:
-            data = pickle.load(f)
-
-        return data
-
-    def _save_dataset(self, data, data_path):
-        with open(data_path, 'wb') as f:
-            pickle.dump(data, f)
-
-    def _save_dataset_npy(self, data, data_path):
-        np.save(data_path, data)
-    
-    def _load_dataset_npy(self, data_path):
-        data = np.load(data_path)
-        return data
+        return f_importance, final_val_acc

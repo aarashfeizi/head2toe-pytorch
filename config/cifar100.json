@@ -14,8 +14,8 @@
     "cuda": true,
     "seed": 402, 
     "gpu_ids": 0,
-    "log_path": "../../scratch/head2toe-pytorch/logs/",
-    "ssl_backbone_path": "../../scratch/head2toe-pytorch/ssl_backbones",
+    "log_path": "/home/mila/f/feiziaar/scratch/head2toe-pytorch/logs/",
+    "ssl_backbone_path": "/home/mila/f/feiziaar/scratch/head2toe-pytorch/ssl_backbones",
     "num_workers": 10,
     "epochs": 10,
     "batch_size": 256,
@@ -27,7 +27,7 @@
 
     "data_use_cache": true,
     "dataset": "cifar100",
-    "dataset_path": "../../scratch/cifar100",
+    "dataset_path": "/home/mila/f/feiziaar/scratch/cifar100",
     "nb_classes": 100,
     "img_size": 224,
     "train_to_val_ratio_split": 0.8,
@@ -47,5 +47,6 @@
     "finetune_backbone": false,
     "loss_gl_p": 1,
     "loss_gl_r": 2,
-    "optimizer": "adam"
+    "optimizer": "adam",
+    "scheduler": "cosine"
 }
