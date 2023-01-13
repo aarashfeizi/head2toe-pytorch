@@ -64,6 +64,10 @@ class FineTune(nn.Module):
         else:
             raise Exception('Backbone not supported')
 
+        if torch.cuda.device_count() > 1:
+            print(f'Backbone is set to {torch.cuda.device_count()} gpus!')
+            self.backbone =  nn.DataParallel(self.backbone)
+        
         if not args.finetune_backbone:
             self.backbone.eval()
         
@@ -348,11 +352,11 @@ class FineTune(nn.Module):
 
     def optimize_finetune(self, train_loader, val_loader, selected_feature_indices=None, split_names={'train': '', 'val': ''}):
         self._prepare_fc(selected_feature_indices)
-        
+
         if torch.cuda.device_count() > 1:
             print(f'Using {torch.cuda.device_count()} gpus!')
             self.classification_layer = nn.DataParallel(self.classification_layer)
-            self.backbone =  nn.DataParallel(self.backbone)
+
 
         assert self.total_output_size != -1
         if self.vtab:
