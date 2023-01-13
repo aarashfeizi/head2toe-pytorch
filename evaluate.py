@@ -77,19 +77,10 @@ def main():
             model = finetune.FineTune(args=args, backbone='resnet50', nb_classes=nb_classes)
 
         model.set_fold_idx(fold_idx)
-        
-        if torch.cuda.device_count() > 1:
-            print(f'Using {torch.cuda.device_count()} gpus!')
-            model = nn.DataParallel(model)
-            f_importance_1, final_val_acc = model.module.evaluate(train_loader=train_data,
-                        val_loader=val_data,
-                        test_loader=test_data,
-                        trainval_loader=trainval_data)
-        else:
-            f_importance_1, final_val_acc = model.evaluate(train_loader=train_data,
-                                    val_loader=val_data,
-                                    test_loader=test_data,
-                                    trainval_loader=trainval_data)
+        f_importance_1, final_val_acc = model.evaluate(train_loader=train_data,
+                                val_loader=val_data,
+                                test_loader=test_data,
+                                trainval_loader=trainval_data)
             
         val_accs.append(final_val_acc)
         # f_importance_2 = model.get_feature_importance()
