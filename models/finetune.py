@@ -136,10 +136,11 @@ class FineTune(nn.Module):
             final_output = {l_n: output[l_n] for l_n in self.layers_to_use}
             return final_output
 
-    def _get_embedding(self, dataloader):
+    def _get_embedding(self, dataloader, selected_feature_indices=None):
         self.backbone.eval()
         batch_embedding_lists = []
         labels = []
+        output_embeddings = []
         with tqdm(total=len(dataloader), desc="Getting head2toe embeddings...") as t:
             for idx, batch in enumerate(dataloader):
                 x, l = batch
@@ -147,17 +148,28 @@ class FineTune(nn.Module):
                     x = x.cuda()
                 out = self.backbone(x)
                 out = self._choose_layers(out)
-                batch_embedding_lists.append(utils.flatten_and_concat(output_dict=out, 
-                                                target_size=self.target_size)) # should I detach?
+                batch_all_indices = utils.flatten_and_concat(output_dict=out, 
+                                                target_size=self.target_size)
+                if selected_feature_indices is not None:
+                    batch_chosen_indices = self._process_embeddings(embeddings=batch_all_indices,
+                                                            selected_features=selected_feature_indices,
+                                                            normalization=self.emb_normalization)   
+                    output_embeddings.append(batch_chosen_indices)
+                else:
+                    batch_embedding_lists.append(batch_all_indices)
                 labels.append(l)
 
                 t.update()
             
         labels = torch.concat(labels)
-        output_embeddings = []
-        for i in range(len(batch_embedding_lists[0])):
-            embedding_i = [batch[i] for batch in batch_embedding_lists]
-            output_embeddings.append(torch.concat(embedding_i, dim=0))
+        
+        if selected_feature_indices is None:
+            assert len(output_embeddings) == 0
+            for i in range(len(batch_embedding_lists[0])):
+                embedding_i = [batch[i] for batch in batch_embedding_lists]
+                output_embeddings.append(torch.concat(embedding_i, dim=0))
+        else:
+            output_embeddings = torch.concat(output_embeddings, dim=0)
 
         return output_embeddings, labels
 
@@ -402,17 +414,24 @@ class FineTune(nn.Module):
                 val_labels = utils.load_dataset_npy(val_lbls_path)
                 val_embeddings = [torch.tensor(t) for t in val_embeddings]
                 val_labels = torch.tensor(val_labels) 
-            else:
-                val_embeddings, val_labels = self._get_embedding(val_loader)
 
-                if self.use_cache:
+                val_embeddings = self._process_embeddings(embeddings=val_embeddings,
+                                                        selected_features=selected_feature_indices,
+                                                        normalization=self.emb_normalization)   
+            else:
+                val_embeddings, val_labels = self._get_embedding(val_loader, selected_feature_indices)
+
+                if self.use_cache and (selected_feature_indices is None):
                     to_save = [t.numpy() for t in val_embeddings]
                     utils.save_dataset(to_save, val_emb_path)
                     utils.save_dataset_npy(val_labels.numpy(), val_lbls_path)
+                elif selected_feature_indices is not None:
+                    print('Not saving to cache because feature are already chosen!')
 
-            val_embeddings = self._process_embeddings(embeddings=val_embeddings,
-                                                        selected_features=selected_feature_indices,
-                                                        normalization=self.emb_normalization)   
+            # val_embeddings = self._process_embeddings(embeddings=val_embeddings,
+            #                                             selected_features=selected_feature_indices,
+            #                                             normalization=self.emb_normalization)   
+
             val_emb_dataset = list(zip(val_embeddings.numpy(), val_labels.numpy()))
     
             val_embedding_dl = DataLoader(val_emb_dataset, shuffle=True, batch_size=self.val_batch_size)
