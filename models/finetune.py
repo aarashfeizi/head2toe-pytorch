@@ -428,9 +428,10 @@ class FineTune(nn.Module):
                 elif selected_feature_indices is not None:
                     print('Not saving to cache because feature are already chosen!')
 
-            # val_embeddings = self._process_embeddings(embeddings=val_embeddings,
-            #                                             selected_features=selected_feature_indices,
-            #                                             normalization=self.emb_normalization)   
+            if selected_feature_indices is None:
+                val_embeddings = self._process_embeddings(embeddings=val_embeddings,
+                                                            selected_features=selected_feature_indices,
+                                                            normalization=self.emb_normalization)   
 
             val_emb_dataset = list(zip(val_embeddings.numpy(), val_labels.numpy()))
     
