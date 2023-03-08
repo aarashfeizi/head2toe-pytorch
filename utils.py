@@ -138,13 +138,13 @@ def get_args():
     if args.lr:
       cfg_dict['lr'] = args.lr
     
-    if args.loss_gl_coeff:
+    if args.loss_gl_coeff is not None:
       cfg_dict['loss_gl_coeff'] = args.loss_gl_coeff  
 
-    if args.seed:
+    if args.seed is not None:
       cfg_dict['seed'] = args.seed  
 
-    if args.seed:
+    if args.fraction is not None:
       cfg_dict['fraction'] = args.fraction
       
 
